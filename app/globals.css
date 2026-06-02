@@ -2,26 +2,83 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html {
+  scroll-behavior: smooth;
+  background-color: #020617;
 }
 
 body {
-  color: var(--foreground);
-  background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
+  background-color: #020617;
+  color: #f8fafc;
+  overflow-x: hidden;
 }
 
-@layer utilities {
-  .text-balance {
-    text-wrap: balance;
+/* Custom Stadium Light Beams Animation */
+@keyframes lightBeam {
+  0%, 100% {
+    transform: rotate(-10deg) scale(0.95);
+    opacity: 0.25;
   }
+  50% {
+    transform: rotate(10deg) scale(1.05);
+    opacity: 0.45;
+  }
+}
+
+/* Golden Trophy Float Animation */
+@keyframes floatTrophy {
+  0%, 100% {
+    transform: translateY(0) rotateY(0deg);
+  }
+  50% {
+    transform: translateY(-12px) rotateY(180deg);
+  }
+}
+
+/* Stadium Spotlight Beams Class */
+.stadium-light-beam {
+  position: absolute;
+  top: -10%;
+  left: 50%;
+  width: 40vw;
+  height: 90vh;
+  background: radial-gradient(ellipse at top, rgba(16, 185, 129, 0.15) 0%, rgba(59, 130, 246, 0.03) 50%, transparent 100%);
+  transform-origin: top center;
+  animation: lightBeam 15s ease-in-out infinite alternate;
+  pointer-events: none;
+  filter: blur(40px);
+}
+
+.stadium-light-beam-reverse {
+  position: absolute;
+  top: -10%;
+  right: 50%;
+  width: 40vw;
+  height: 90vh;
+  background: radial-gradient(ellipse at top, rgba(59, 130, 246, 0.12) 0%, rgba(16, 185, 129, 0.03) 50%, transparent 100%);
+  transform-origin: top center;
+  animation: lightBeam 18s ease-in-out infinite alternate-reverse;
+  pointer-events: none;
+  filter: blur(40px);
+}
+
+/* Floating Animation */
+.animate-float-trophy {
+  animation: floatTrophy 8s ease-in-out infinite;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #020617;
+}
+::-webkit-scrollbar-thumb {
+  background: #1e293b;
+  border-radius: 9999px;
+  border: 2px solid #020617;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #10b981;
 }

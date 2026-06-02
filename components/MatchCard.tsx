@@ -1,7 +1,8 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { Calendar, Share2, Tv, MapPin, Award } from 'lucide-react';
+import { Calendar, Share2, Tv, MapPin, ChevronDown, ChevronUp, Play, ShieldAlert, Award } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 
 interface Match {
   id: number;
@@ -27,6 +28,7 @@ export default function MatchCard({ match, timezone }: MatchCardProps) {
   const [streamLink, setStreamLink] = useState('https://www.fifa.com/fifaplus');
   const [streamLabel, setStreamLabel] = useState('Watch Live on FIFA+');
   const [isLive, setIsLive] = useState(false);
+  const [showTimeline, setShowTimeline] = useState(false);
 
   // Formatting date/time in the selected timezone
   useEffect(() => {
@@ -61,10 +63,8 @@ export default function MatchCard({ match, timezone }: MatchCardProps) {
   useEffect(() => {
     async function detectStreamingRights() {
       try {
-        // Fetch from ipapi.co (which is HTTPS friendly) with fallback to ip-api.com
         let res = await fetch('https://ipapi.co/json/');
         if (!res.ok) {
-          // If ipapi.co fails, use ip-api.com (HTTP only on free tier, will fallback on HTTPS block)
           res = await fetch('http://ip-api.com/json');
         }
         const data = await res.json();
@@ -84,16 +84,12 @@ export default function MatchCard({ match, timezone }: MatchCardProps) {
           setStreamLabel('Watch Live on FIFA+');
         }
       } catch (err) {
-        // Fail silently and use FIFA+ default
         setStreamLink('https://www.fifa.com/fifaplus');
         setStreamLabel('Watch Live on FIFA+');
       }
     }
     detectStreamingRights();
 
-    // Check if match is live (mock simulation or real live match)
-    // Matches start June 11, 2026. For demonstration purposes, we will treat 101/102 as "LIVE" if time fits,
-    // or just display live badge if status is LIVE
     if (match.status === 'LIVE' || match.id === 101) {
       setIsLive(true);
     }
@@ -114,7 +110,7 @@ export default function MatchCard({ match, timezone }: MatchCardProps) {
     };
 
     const startDateStr = formatToIcsDate(match.date);
-    const endDateStr = formatToIcsDate(new Date(new Date(match.date).getTime() + 2 * 60 * 60 * 1000).toISOString()); // 2 hours duration
+    const endDateStr = formatToIcsDate(new Date(new Date(match.date).getTime() + 2 * 60 * 60 * 1000).toISOString());
 
     const icsContent = [
       'BEGIN:VCALENDAR',
@@ -150,115 +146,171 @@ export default function MatchCard({ match, timezone }: MatchCardProps) {
 ⏰ Time: ${localTimeStr} (${timezone})
 📍 Venue: ${match.venue}
 🏆 Stage: ${match.stage}
-Get live score alerts & chatbot support here: https://fifa-2026-fan-site.vercel.app`;
+Get live score alerts & chatbot support here: https://world-cup-fan-site.vercel.app`;
 
     const whatsappUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(shareText)}`;
     window.open(whatsappUrl, '_blank');
   };
 
+  // Mock match timeline details for premium dashboard engagement
+  const mockTimeline = [
+    { minute: 0, event: 'Kickoff whistle blown', type: 'system' },
+    { minute: 23, event: `Yellow Card: ${match.homeTeam} Defender`, type: 'card' },
+    { minute: 45, event: 'Half-time interval', type: 'system' },
+    { minute: 58, event: `⚽ GOAL! Scored for ${match.homeTeam}`, type: 'goal' },
+    { minute: 90, event: 'Full time whistle blown', type: 'system' },
+  ];
+
   return (
-    <div className="relative overflow-hidden rounded-2xl border border-slate-800 bg-slate-900/40 backdrop-blur-xl p-5 hover:border-emerald-500/50 hover:bg-slate-900/60 transition-all duration-300 shadow-xl group">
-      {/* Visual Accent Gradient */}
-      <div className="absolute -right-16 -top-16 w-32 h-32 bg-emerald-500/5 rounded-full blur-2xl group-hover:bg-emerald-500/10 transition-all duration-500 pointer-events-none" />
+    <motion.div
+      layout
+      whileHover={{ y: -6, transition: { duration: 0.2 } }}
+      className="relative overflow-hidden rounded-3xl border border-slate-800/80 bg-gradient-to-b from-slate-900/60 to-slate-950/80 backdrop-blur-xl p-6 shadow-2xl hover:border-emerald-500/40 transition-all duration-300 group"
+    >
+      {/* Stadium spotlight glow backdrop */}
+      <div className="absolute -right-24 -top-24 w-48 h-48 bg-gradient-to-br from-emerald-500/10 to-transparent rounded-full blur-[60px] pointer-events-none group-hover:scale-125 transition-transform duration-500" />
 
       {/* Header Info */}
       <div className="flex justify-between items-center mb-4">
-        <span className="text-[10px] uppercase font-bold tracking-widest text-emerald-400 bg-emerald-950/60 px-2.5 py-1 rounded-full border border-emerald-900/40">
+        <span className="text-[10px] uppercase font-black tracking-widest text-emerald-400 bg-emerald-950/50 border border-emerald-900/50 px-3 py-1 rounded-full">
           Match {match.matchNumber}
         </span>
-        <span className="text-[11px] font-semibold text-slate-400">
+        <span className="text-xs font-bold text-slate-400">
           {match.group !== 'N/A' ? `${match.group}` : `${match.stage}`}
         </span>
       </div>
 
       {/* Live Badge */}
       {isLive && (
-        <div className="absolute top-4 right-4 flex items-center space-x-1.5 bg-red-600/90 text-white text-[10px] font-extrabold uppercase tracking-widest px-2.5 py-0.5 rounded-md animate-pulse">
+        <div className="absolute top-5 right-6 flex items-center space-x-1.5 bg-gradient-to-r from-red-600 to-rose-600 text-white text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-md animate-pulse">
           <span className="w-1.5 h-1.5 bg-white rounded-full" />
           <span>LIVE</span>
         </div>
       )}
 
-      {/* Teams Grid */}
-      <div className="flex flex-col items-center justify-center my-4 py-3 relative border-y border-slate-800/40">
-        <div className="flex justify-between items-center w-full px-4">
-          {/* Home Team */}
-          <div className="flex flex-col items-center flex-1 text-center">
-            <div className="w-12 h-12 rounded-full bg-slate-800 flex items-center justify-center border border-slate-700 shadow-md mb-2 group-hover:scale-105 transition-transform duration-300">
-              <span className="text-lg font-bold text-slate-100 uppercase">
-                {match.homeTeam.substring(0, 3)}
+      {/* Teams grid visualizer */}
+      <div className="flex items-center justify-between my-5 py-4 border-y border-slate-800/30">
+        {/* Home Team */}
+        <div className="flex flex-col items-center flex-1 text-center">
+          <div className="w-14 h-14 rounded-full bg-slate-950/80 flex items-center justify-center border border-slate-850 shadow-inner mb-3 group-hover:scale-105 transition-transform duration-300">
+            <span className="text-xl font-black text-slate-200">
+              {match.homeTeam.substring(0, 3).toUpperCase()}
+            </span>
+          </div>
+          <h3 className="text-sm font-bold text-slate-200 line-clamp-1">{match.homeTeam}</h3>
+        </div>
+
+        {/* Versus Match score */}
+        <div className="flex flex-col items-center px-4">
+          {match.score ? (
+            <span className="text-2xl font-black text-white tracking-widest bg-slate-950/80 px-4 py-2 rounded-xl border border-slate-800">
+              {match.score}
+            </span>
+          ) : (
+            <div className="flex flex-col items-center">
+              <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">VS</span>
+              <span className="text-[10px] text-emerald-400 font-bold bg-emerald-950/20 px-2 py-0.5 rounded-full border border-emerald-900/30 mt-2">
+                {localTimeStr}
               </span>
             </div>
-            <h3 className="text-sm font-semibold text-slate-200 line-clamp-1">{match.homeTeam}</h3>
-          </div>
+          )}
+        </div>
 
-          {/* Versus / Score */}
-          <div className="flex flex-col items-center px-4">
-            {match.score ? (
-              <span className="text-2xl font-extrabold text-white tracking-widest bg-slate-800/60 px-3 py-1.5 rounded-lg border border-slate-700">
-                {match.score}
-              </span>
-            ) : (
-              <div className="flex flex-col items-center">
-                <span className="text-xs font-bold text-slate-500 uppercase tracking-widest">VS</span>
-                <span className="text-[10px] text-slate-400 font-medium mt-1">{localTimeStr}</span>
-              </div>
-            )}
+        {/* Away Team */}
+        <div className="flex flex-col items-center flex-1 text-center">
+          <div className="w-14 h-14 rounded-full bg-slate-950/80 flex items-center justify-center border border-slate-850 shadow-inner mb-3 group-hover:scale-105 transition-transform duration-300">
+            <span className="text-xl font-black text-slate-200">
+              {match.awayTeam.substring(0, 3).toUpperCase()}
+            </span>
           </div>
-
-          {/* Away Team */}
-          <div className="flex flex-col items-center flex-1 text-center">
-            <div className="w-12 h-12 rounded-full bg-slate-800 flex items-center justify-center border border-slate-700 shadow-md mb-2 group-hover:scale-105 transition-transform duration-300">
-              <span className="text-lg font-bold text-slate-100 uppercase">
-                {match.awayTeam.substring(0, 3)}
-              </span>
-            </div>
-            <h3 className="text-sm font-semibold text-slate-200 line-clamp-1">{match.awayTeam}</h3>
-          </div>
+          <h3 className="text-sm font-bold text-slate-200 line-clamp-1">{match.awayTeam}</h3>
         </div>
       </div>
 
-      {/* Date & Location Details */}
-      <div className="space-y-2 mb-5">
-        <div className="flex items-center text-xs text-slate-300 font-medium">
-          <Calendar className="w-4 h-4 text-emerald-400 mr-2 flex-shrink-0" />
+      {/* Fixture Venue and Local Timestamps */}
+      <div className="space-y-2 mb-6">
+        <div className="flex items-center text-xs text-slate-300 font-semibold">
+          <Calendar className="w-4 h-4 text-emerald-400 mr-2.5 flex-shrink-0" />
           <span>{localDateStr} @ {localTimeStr}</span>
         </div>
         <div className="flex items-center text-xs text-slate-400">
-          <MapPin className="w-4 h-4 text-slate-500 mr-2 flex-shrink-0" />
+          <MapPin className="w-4 h-4 text-slate-500 mr-2.5 flex-shrink-0" />
           <span className="line-clamp-1">{match.venue}</span>
         </div>
       </div>
 
-      {/* Action Buttons */}
-      <div className="grid grid-cols-2 gap-2 mt-4 pt-4 border-t border-slate-800/30">
+      {/* Action triggers */}
+      <div className="grid grid-cols-2 gap-2 pb-4 border-b border-slate-800/30">
         <button
           onClick={handleAddToCalendar}
-          className="flex items-center justify-center space-x-1.5 py-2.5 px-3 bg-slate-800/80 hover:bg-slate-800 border border-slate-700 hover:border-slate-600 rounded-xl text-xs font-semibold text-slate-200 transition-all active:scale-95"
+          className="flex items-center justify-center space-x-1.5 py-3 px-3 bg-slate-900/60 hover:bg-slate-900 border border-slate-800 hover:border-slate-700 rounded-xl text-xs font-bold text-slate-200 transition-all active:scale-[0.98]"
         >
-          <Calendar className="w-3.5 h-3.5" />
+          <Calendar className="w-3.5 h-3.5 text-slate-400" />
           <span>Add to Calendar</span>
         </button>
 
         <button
           onClick={handleWhatsAppShare}
-          className="flex items-center justify-center space-x-1.5 py-2.5 px-3 bg-emerald-600/10 hover:bg-emerald-600/20 border border-emerald-500/20 hover:border-emerald-500/40 rounded-xl text-xs font-semibold text-emerald-400 transition-all active:scale-95"
+          className="flex items-center justify-center space-x-1.5 py-3 px-3 bg-emerald-600/5 hover:bg-emerald-600/10 border border-emerald-500/10 hover:border-emerald-500/25 rounded-xl text-xs font-bold text-emerald-400 transition-all active:scale-[0.98]"
         >
           <Share2 className="w-3.5 h-3.5" />
           <span>Share Match</span>
         </button>
       </div>
 
-      {/* Watch Live Stream CTA */}
+      {/* Stream Routing Action */}
       <a
         href={streamLink}
         target="_blank"
         rel="noopener noreferrer"
-        className="mt-3 w-full flex items-center justify-center space-x-2 py-2.5 px-4 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs rounded-xl shadow-lg shadow-emerald-500/10 transition-all hover:-translate-y-0.5 hover:shadow-emerald-500/20 duration-200 cursor-pointer"
+        className="mt-4 w-full flex items-center justify-center space-x-2 py-3.5 px-4 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs rounded-xl shadow-lg shadow-emerald-500/10 hover:shadow-emerald-500/20 active:translate-y-[1px] transition-all duration-200 cursor-pointer"
       >
         <Tv className="w-4 h-4 fill-slate-950" />
         <span>{streamLabel}</span>
       </a>
-    </div>
+
+      {/* Interactive Expandable Timeline Widget */}
+      <div className="mt-4">
+        <button
+          onClick={() => setShowTimeline(!showTimeline)}
+          className="w-full flex items-center justify-center space-x-1.5 py-2 text-[10px] font-bold text-slate-500 hover:text-slate-300 transition-colors uppercase tracking-wider focus:outline-none"
+        >
+          <span>Match Events Timeline</span>
+          {showTimeline ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+        </button>
+
+        <AnimatePresence>
+          {showTimeline && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: 'auto', opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              className="overflow-hidden mt-3 pt-3 border-t border-slate-900 space-y-3"
+            >
+              {mockTimeline.map((item, index) => (
+                <div key={index} className="flex items-start space-x-3 text-xs">
+                  <div className="flex flex-col items-center">
+                    <div className={`w-5 h-5 rounded-full flex items-center justify-center text-[9px] font-bold ${
+                      item.type === 'goal' 
+                        ? 'bg-emerald-500 text-slate-950' 
+                        : item.type === 'card' 
+                        ? 'bg-yellow-500 text-slate-950' 
+                        : 'bg-slate-800 text-slate-300'
+                    }`}>
+                      {item.minute}'
+                    </div>
+                    {index !== mockTimeline.length - 1 && (
+                      <div className="w-[1px] h-5 bg-slate-850 mt-1" />
+                    )}
+                  </div>
+                  <span className="text-slate-400 font-medium pt-0.5">{item.event}</span>
+                </div>
+              ))}
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+    </motion.div>
   );
 }
