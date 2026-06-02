@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic';
+
 import { NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabase';
 import { getLiveMatchGoals, sendEmailAlert } from '@/lib/football-api';
