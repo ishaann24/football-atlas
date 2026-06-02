@@ -43,27 +43,15 @@ export default function Home() {
   const [selectedTeam, setSelectedTeam] = useState('All');
   const [selectedStage, setSelectedStage] = useState('All');
 
-  // Track absolute scroll coordinate relative to page height
-  const containerRef = useRef<HTMLDivElement>(null);
-  const { scrollYProgress } = useScroll({
-    target: containerRef,
-    offset: ['start start', 'end end'],
-  });
+  // Track absolute window scroll coordinate
+  const { scrollYProgress } = useScroll();
 
-  // Apply spring damping to smooth out scroll coordinates feeding the 3D Canvas
+  // Apply spring damping to smooth out scroll coordinates for UI transforms
   const smoothScrollProgress = useSpring(scrollYProgress, {
     stiffness: 80,
     damping: 20,
     restDelta: 0.001,
   });
-
-  const [scrollVal, setScrollVal] = useState(0);
-
-  useEffect(() => {
-    return smoothScrollProgress.onChange((val) => {
-      setScrollVal(val);
-    });
-  }, [smoothScrollProgress]);
 
   const matches = useMemo(() => rawMatches, []);
 
@@ -109,23 +97,23 @@ export default function Home() {
     });
   }, [matches, selectedTeam, searchTerm, selectedStage]);
 
-  // Framer Motion transforms to drive text reveals based on scroll progress
-  const tunnelTextOpacity = useTransform(scrollYProgress, [0, 0.28], [1, 0]);
-  const tunnelTextScale = useTransform(scrollYProgress, [0, 0.28], [1, 0.8]);
+  // Framer Motion transforms to drive text reveals based on scroll progress (smoothed via spring)
+  const tunnelTextOpacity = useTransform(smoothScrollProgress, [0, 0.28], [1, 0]);
+  const tunnelTextScale = useTransform(smoothScrollProgress, [0, 0.28], [1, 0.8]);
 
-  const lightsTextOpacity = useTransform(scrollYProgress, [0.18, 0.35, 0.48], [0, 1, 0]);
-  const lightsTextY = useTransform(scrollYProgress, [0.18, 0.35, 0.48], [50, 0, -50]);
+  const lightsTextOpacity = useTransform(smoothScrollProgress, [0.18, 0.35, 0.48], [0, 1, 0]);
+  const lightsTextY = useTransform(smoothScrollProgress, [0.18, 0.35, 0.48], [50, 0, -50]);
 
-  const trophyTextOpacity = useTransform(scrollYProgress, [0.42, 0.58, 0.72], [0, 1, 0]);
-  const trophyTextY = useTransform(scrollYProgress, [0.42, 0.58, 0.72], [50, 0, -50]);
+  const trophyTextOpacity = useTransform(smoothScrollProgress, [0.42, 0.58, 0.72], [0, 1, 0]);
+  const trophyTextY = useTransform(smoothScrollProgress, [0.42, 0.58, 0.72], [50, 0, -50]);
 
   return (
     <LenisProvider>
-      <div ref={containerRef} className="relative min-h-[500vh] bg-[#020617] text-slate-100 selection:bg-emerald-500 selection:text-slate-900 overflow-x-hidden">
+      <div className="relative min-h-[500vh] bg-[#020617] text-slate-100 selection:bg-emerald-500 selection:text-slate-900 overflow-x-hidden">
         
         {/* Fixed Background 3D WebGL Canvas mapping camera paths to page scrolls */}
         <div className="fixed inset-0 w-screen h-screen z-0 pointer-events-none">
-          <WorldCupScene scrollProgress={scrollVal} />
+          <WorldCupScene />
         </div>
 
         {/* Global sticky header */}
