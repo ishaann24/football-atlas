@@ -2,166 +2,186 @@
 
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { MapPin, Info, Users, Compass } from 'lucide-react';
+import { MapPin, Info, Users, Compass, Globe } from 'lucide-react';
 
 interface City {
   name: string;
+  flag: string;
+  matches: number;
+  country: 'USA' | 'Canada' | 'Mexico';
   stadium: string;
   capacity: string;
-  country: 'USA' | 'Canada' | 'Mexico';
-  x: number; // Percent position on custom SVG background
-  y: number;
+  bbox: string;
+  lat: number;
+  lon: number;
 }
 
 const CITIES: City[] = [
-  { name: 'Seattle', stadium: 'Lumen Field', capacity: '69,000', country: 'USA', x: 20, y: 25 },
-  { name: 'San Francisco', stadium: "Levi's Stadium", capacity: '71,000', country: 'USA', x: 16, y: 44 },
-  { name: 'Los Angeles', stadium: 'SoFi Stadium', capacity: '70,240', country: 'USA', x: 19, y: 55 },
-  { name: 'Vancouver', stadium: 'BC Place', capacity: '54,500', country: 'Canada', x: 20, y: 17 },
-  { name: 'Guadalajara', stadium: 'Estadio Akron', capacity: '48,070', country: 'Mexico', x: 38, y: 88 },
-  { name: 'Mexico City', stadium: 'Estadio Azteca', capacity: '87,523', country: 'Mexico', x: 42, y: 92 },
-  { name: 'Monterrey', stadium: 'Estadio BBVA', capacity: '53,500', country: 'Mexico', x: 41, y: 81 },
-  { name: 'Dallas', stadium: 'AT&T Stadium', capacity: '80,000', country: 'USA', x: 44, y: 68 },
-  { name: 'Houston', stadium: 'NRG Stadium', capacity: '72,220', country: 'USA', x: 46, y: 73 },
-  { name: 'Kansas City', stadium: 'Arrowhead Stadium', capacity: '76,416', country: 'USA', x: 49, y: 48 },
-  { name: 'Atlanta', stadium: 'Mercedes-Benz Stadium', capacity: '71,000', country: 'USA', x: 62, y: 64 },
-  { name: 'Miami', stadium: 'Hard Rock Stadium', capacity: '64,767', country: 'USA', x: 70, y: 79 },
-  { name: 'Toronto', stadium: 'BMO Field', capacity: '45,000', country: 'Canada', x: 72, y: 28 },
-  { name: 'Boston', stadium: 'Gillette Stadium', capacity: '65,878', country: 'USA', x: 84, y: 26 },
-  { name: 'New York/New Jersey', stadium: 'MetLife Stadium', capacity: '82,500', country: 'USA', x: 80, y: 32 },
-  { name: 'Philadelphia', stadium: 'Lincoln Financial Field', capacity: '69,796', country: 'USA', x: 78, y: 35 },
+  { name: 'Vancouver', flag: '🇨🇦', matches: 7, country: 'Canada', stadium: 'BC Place', capacity: '54,500', bbox: '-123.16%2C49.24%2C-123.06%2C49.31', lat: 49.276, lon: -123.111 },
+  { name: 'Seattle', flag: '🇺🇸', matches: 6, country: 'USA', stadium: 'Lumen Field', capacity: '69,000', bbox: '-122.38%2C47.56%2C-122.28%2C47.63', lat: 47.595, lon: -122.332 },
+  { name: 'San Francisco', flag: '🇺🇸', matches: 6, country: 'USA', stadium: "Levi's Stadium", capacity: '71,000', bbox: '-122.02%2C37.37%2C-121.92%2C37.44', lat: 37.403, lon: -121.970 },
+  { name: 'Los Angeles', flag: '🇺🇸', matches: 8, country: 'USA', stadium: 'SoFi Stadium', capacity: '70,240', bbox: '-118.39%2C33.92%2C-118.29%2C33.99', lat: 33.953, lon: -118.339 },
+  { name: 'Kansas City', flag: '🇺🇸', matches: 6, country: 'USA', stadium: 'Arrowhead Stadium', capacity: '76,416', bbox: '-94.53%2C39.01%2C-94.43%2C39.09', lat: 39.049, lon: -94.484 },
+  { name: 'Dallas', flag: '🇺🇸', matches: 9, country: 'USA', stadium: 'AT&T Stadium', capacity: '80,000', bbox: '-97.14%2C32.71%2C-97.04%2C32.78', lat: 32.747, lon: -97.093 },
+  { name: 'Houston', flag: '🇺🇸', matches: 7, country: 'USA', stadium: 'NRG Stadium', capacity: '72,220', bbox: '-95.46%2C29.65%2C-95.36%2C29.72', lat: 29.684, lon: -95.408 },
+  { name: 'Atlanta', flag: '🇺🇸', matches: 8, country: 'USA', stadium: 'Mercedes-Benz Stadium', capacity: '71,000', bbox: '-84.45%2C33.72%2C-84.35%2C33.79', lat: 33.758, lon: -84.401 },
+  { name: 'Miami', flag: '🇺🇸', matches: 7, country: 'USA', stadium: 'Hard Rock Stadium', capacity: '64,767', bbox: '-80.29%2C25.92%2C-80.19%2C26.00', lat: 25.958, lon: -80.239 },
+  { name: 'Philadelphia', flag: '🇺🇸', matches: 6, country: 'USA', stadium: 'Lincoln Financial Field', capacity: '69,796', bbox: '-75.22%2C39.87%2C-75.11%2C39.94', lat: 39.901, lon: -75.168 },
+  { name: 'Boston', flag: '🇺🇸', matches: 7, country: 'USA', stadium: 'Gillette Stadium', capacity: '65,878', bbox: '-71.31%2C42.06%2C-71.21%2C42.13', lat: 42.091, lon: -71.264 },
+  { name: 'Toronto', flag: '🇨🇦', matches: 6, country: 'Canada', stadium: 'BMO Field', capacity: '45,000', bbox: '-79.42%2C43.60%2C-79.32%2C43.67', lat: 43.633, lon: -79.373 },
+  { name: 'New York/NJ', flag: '🇺🇸', matches: 8, country: 'USA', stadium: 'MetLife Stadium', capacity: '82,500', bbox: '-74.12%2C40.78%2C-74.02%2C40.85', lat: 40.813, lon: -74.074 },
+  { name: 'Mexico City', flag: '🇲🇽', matches: 5, country: 'Mexico', stadium: 'Estadio Azteca', capacity: '87,523', bbox: '-99.20%2C19.27%2C-99.10%2C19.34', lat: 19.303, lon: -99.151 },
+  { name: 'Monterrey', flag: '🇲🇽', matches: 4, country: 'Mexico', stadium: 'Estadio BBVA', capacity: '53,500', bbox: '-100.29%2C25.63%2C-100.19%2C25.71', lat: 25.669, lon: -100.244 },
+  { name: 'Guadalajara', flag: '🇲🇽', matches: 4, country: 'Mexico', stadium: 'Estadio Akron', capacity: '48,070', bbox: '-103.51%2C20.65%2C-103.40%2C20.72', lat: 20.682, lon: -103.456 },
 ];
 
 export default function WorldMap() {
-  const [activeCity, setActiveCity] = useState<City | null>(CITIES[5]); // Default to Mexico City (Estadio Azteca)
+  const [activeCity, setActiveCity] = useState<City | null>(null);
+
+  // Mapnik embed URL builder
+  const mapUrl = activeCity
+    ? `https://www.openstreetmap.org/export/embed.html?bbox=${activeCity.bbox}&layer=mapnik&marker=${activeCity.lat}%2C${activeCity.lon}`
+    : 'https://www.openstreetmap.org/export/embed.html?bbox=-125.0%2C15.0%2C-65.0%2C55.0&layer=mapnik';
 
   return (
-    <div className="bg-slate-950/40 border border-slate-900 rounded-3xl p-6 md:p-8 backdrop-blur-2xl shadow-2xl relative overflow-hidden grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
-      {/* Visual background lines */}
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_30%,rgba(16,185,129,0.05)_0%,transparent_60%)] pointer-events-none" />
+    <div className="bg-slate-950/40 border border-slate-900 rounded-3xl p-6 md:p-8 backdrop-blur-2xl shadow-2xl relative overflow-hidden space-y-6">
+      {/* Background radial highlight */}
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_30%,rgba(16,185,129,0.03)_0%,transparent_60%)] pointer-events-none" />
 
-      {/* SVG Map (8 Cols) */}
-      <div className="lg:col-span-8 relative w-full aspect-[16/10] bg-slate-900/30 rounded-2xl border border-slate-800/40 overflow-hidden select-none">
-        {/* Decorative Grid Lines mapping North America boundaries */}
-        <svg className="absolute inset-0 w-full h-full stroke-slate-800/20 stroke-[0.5]" fill="none">
-          <line x1="0" y1="20%" x2="100%" y2="20%" />
-          <line x1="0" y1="40%" x2="100%" y2="40%" />
-          <line x1="0" y1="60%" x2="100%" y2="60%" />
-          <line x1="0" y1="80%" x2="100%" y2="80%" />
-          <line x1="20%" y1="0" x2="20%" y2="100%" />
-          <line x1="40%" y1="0" x2="40%" y2="100%" />
-          <line x1="60%" y1="0" x2="60%" y2="100%" />
-          <line x1="80%" y1="0" x2="80%" y2="100%" />
-        </svg>
-
-        {/* Dynamic Map Country Borders Drawing */}
-        <svg className="absolute inset-0 w-full h-full opacity-35" viewBox="0 0 100 100" fill="none">
-          {/* Canada Border Representation */}
-          <path d="M 10 5 L 90 5 L 85 25 L 70 23 L 65 30 L 15 30 Z" fill="rgba(59, 130, 246, 0.05)" stroke="#3b82f6" strokeWidth="0.5" />
-          {/* USA Border Representation */}
-          <path d="M 15 30 L 65 30 L 70 23 L 85 25 L 88 55 L 78 58 L 68 70 L 46 75 L 43 65 L 18 55 Z" fill="rgba(16, 185, 129, 0.05)" stroke="#10b981" strokeWidth="0.5" />
-          {/* Mexico Border Representation */}
-          <path d="M 18 55 L 43 65 L 46 75 L 49 85 L 43 95 L 36 90 L 30 75 Z" fill="rgba(239, 68, 68, 0.05)" stroke="#ef4444" strokeWidth="0.5" />
-        </svg>
-
-        {/* Host Cities Pins Overlay */}
-        {CITIES.map((city) => (
+      {/* Title */}
+      <div className="flex flex-col md:flex-row justify-between md:items-center gap-4 border-b border-slate-900 pb-5">
+        <div className="space-y-1">
+          <div className="inline-flex items-center space-x-2 bg-slate-900/80 border border-slate-800 rounded-full px-3 py-1 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+            <Compass className="w-3.5 h-3.5 text-emerald-400 animate-spin" style={{ animationDuration: '8s' }} />
+            <span>Host Cities Arena Guide</span>
+          </div>
+          <h2 className="text-2xl font-black text-white uppercase tracking-tight mt-2">
+            16 Cities. 3 Nations. One Pitch.
+          </h2>
+        </div>
+        {activeCity && (
           <button
-            key={city.name}
-            onClick={() => setActiveCity(city)}
-            style={{ left: `${city.x}%`, top: `${city.y}%` }}
-            className="absolute -translate-x-1/2 -translate-y-1/2 focus:outline-none z-20 group"
+            onClick={() => setActiveCity(null)}
+            className="self-start md:self-auto text-[10px] font-black uppercase tracking-widest text-[#FFD700] hover:text-[#FFD700]/80 transition-colors py-2 px-4 rounded-xl bg-slate-950 border border-slate-900 hover:border-[#FFD700]/30 shadow-md"
           >
-            {/* Ping Pulse */}
-            <span className={`absolute inline-flex h-6 w-6 rounded-full opacity-65 -left-1 -top-1 animate-ping transition-all duration-300 ${
-              activeCity?.name === city.name ? 'bg-emerald-400' : 'bg-slate-500/40 group-hover:bg-emerald-500/20'
-            }`} />
-            {/* Pin Center */}
-            <div className={`w-4 h-4 rounded-full border transition-all duration-300 flex items-center justify-center shadow-lg ${
-              activeCity?.name === city.name 
-                ? 'bg-emerald-500 border-white scale-125' 
-                : 'bg-slate-900 border-slate-700 group-hover:border-emerald-400 group-hover:scale-110'
-            }`}>
-              <span className={`w-1.5 h-1.5 rounded-full ${activeCity?.name === city.name ? 'bg-slate-950' : 'bg-slate-400'}`} />
-            </div>
-            
-            {/* Label Tooltip Hover */}
-            <span className="absolute left-6 top-1/2 -translate-y-1/2 bg-slate-950/95 border border-slate-800 text-[10px] font-bold text-slate-200 px-2 py-1 rounded-md opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity duration-300 whitespace-nowrap shadow-xl">
-              {city.name}
-            </span>
+            Reset View (North America)
           </button>
-        ))}
+        )}
       </div>
 
-      {/* Info Card Drawer (4 Cols) */}
-      <div className="lg:col-span-4 h-full flex flex-col justify-between">
-        <div className="space-y-4">
-          <div className="inline-flex items-center space-x-2 bg-slate-900/80 border border-slate-800 rounded-full px-3 py-1 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-            <Compass className="w-3.5 h-3.5 text-emerald-400 animate-spin" style={{ animationDuration: '6s' }} />
-            <span>Host Cities Guide</span>
-          </div>
+      {/* Clickable Pill Badges Grid */}
+      <div className="flex flex-wrap gap-2.5">
+        {CITIES.map((city) => {
+          const isActive = activeCity?.name === city.name;
+          return (
+            <button
+              key={city.name}
+              onClick={() => setActiveCity(city)}
+              className={`flex items-center space-x-2 px-3.5 py-2 text-xs rounded-full border transition-all duration-200 ${
+                isActive
+                  ? 'border-[#FFD700] bg-[#FFD700]/10 text-white font-bold shadow-lg shadow-[#FFD700]/5 scale-[1.03]'
+                  : 'bg-slate-900/60 hover:bg-slate-900 hover:border-slate-700 border-slate-850/80 text-slate-300'
+              }`}
+            >
+              <span>{city.flag}</span>
+              <span className="tracking-wide">{city.name}</span>
+              <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full ml-1 leading-none ${
+                isActive 
+                  ? 'bg-[#FFD700]/25 text-[#FFD700]' 
+                  : 'bg-slate-950 text-slate-500 border border-slate-850'
+              }`}>
+                {city.matches} matches
+              </span>
+            </button>
+          );
+        })}
+      </div>
 
-          <h2 className="text-2xl font-black text-white uppercase tracking-tight leading-tight">
-            16 Cities. <br />
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-blue-400">
-              3 Nations.
-            </span>
-          </h2>
-          <p className="text-xs text-slate-400 leading-relaxed">
-            The FIFA World Cup 2026 is hosted across North America. Select any city pinpointed on the interactive map to review its designated stadium details.
-          </p>
+      {/* Main Map + Info card */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
+        {/* OpenStreetMap iframe (8 Cols) */}
+        <div className="lg:col-span-8 w-full aspect-[16/10] bg-slate-950 rounded-2xl border border-slate-900 overflow-hidden relative shadow-inner">
+          <iframe
+            title="FIFA World Cup 2026 Host Cities OpenStreetMap"
+            width="100%"
+            height="100%"
+            src={mapUrl}
+            className="border-0 opacity-85 hover:opacity-100 transition-opacity duration-300 filter invert contrast-[90%] hue-rotate-[180deg]"
+          />
         </div>
 
-        <AnimatePresence mode="wait">
-          {activeCity ? (
+        {/* Info card (4 Cols) */}
+        <div className="lg:col-span-4 flex flex-col justify-between">
+          <AnimatePresence mode="wait">
             <motion.div
-              key={activeCity.name}
+              key={activeCity ? activeCity.name : 'default'}
               initial={{ x: 15, opacity: 0 }}
               animate={{ x: 0, opacity: 1 }}
               exit={{ x: -15, opacity: 0 }}
               transition={{ duration: 0.2 }}
-              className="mt-6 bg-slate-900/60 border border-slate-800/80 rounded-2xl p-5 backdrop-blur-md shadow-xl relative overflow-hidden"
+              className="h-full bg-slate-900/40 border border-slate-900 rounded-2xl p-5 backdrop-blur-md shadow-xl flex flex-col justify-between relative overflow-hidden"
             >
-              <div className="absolute top-0 right-0 p-3 opacity-10 pointer-events-none">
-                <MapPin className="w-20 h-20 text-white" />
+              <div className="absolute top-0 right-0 p-3 opacity-5 pointer-events-none">
+                <Globe className="w-24 h-24 text-white" />
               </div>
 
-              <span className={`inline-block text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full mb-3 border ${
-                activeCity.country === 'USA' 
-                  ? 'bg-emerald-950/50 border-emerald-900/50 text-emerald-400' 
-                  : activeCity.country === 'Canada' 
-                  ? 'bg-blue-950/50 border-blue-900/50 text-blue-400' 
-                  : 'bg-red-950/50 border-red-900/50 text-red-400'
-              }`}>
-                {activeCity.country}
-              </span>
-
-              <h3 className="text-lg font-black text-white tracking-tight">{activeCity.name}</h3>
-
-              <div className="mt-4 space-y-3">
-                <div className="flex items-center text-xs text-slate-300">
-                  <Info className="w-4 h-4 text-emerald-400 mr-2.5 flex-shrink-0" />
+              {activeCity ? (
+                <div className="space-y-6">
                   <div>
-                    <span className="block text-[9px] uppercase font-bold text-slate-500 leading-none mb-0.5">Stadium</span>
-                    <span className="font-semibold text-slate-200">{activeCity.stadium}</span>
+                    <span className={`inline-block text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full mb-3 border ${
+                      activeCity.country === 'USA' 
+                        ? 'bg-emerald-950/50 border-emerald-900/50 text-emerald-400' 
+                        : activeCity.country === 'Canada' 
+                        ? 'bg-blue-950/50 border-blue-900/50 text-blue-400' 
+                        : 'bg-red-950/50 border-red-900/50 text-red-400'
+                    }`}>
+                      {activeCity.country}
+                    </span>
+                    <h3 className="text-xl font-black text-white tracking-tight">{activeCity.name}</h3>
+                  </div>
+
+                  <div className="space-y-4">
+                    <div className="flex items-start text-xs text-slate-300">
+                      <Info className="w-4 h-4 text-[#FFD700] mr-2.5 flex-shrink-0 mt-0.5" />
+                      <div>
+                        <span className="block text-[9px] uppercase font-bold text-slate-500 leading-none mb-0.5">Stadium</span>
+                        <span className="font-semibold text-slate-200">{activeCity.stadium}</span>
+                      </div>
+                    </div>
+
+                    <div className="flex items-start text-xs text-slate-300">
+                      <Users className="w-4 h-4 text-blue-400 mr-2.5 flex-shrink-0 mt-0.5" />
+                      <div>
+                        <span className="block text-[9px] uppercase font-bold text-slate-500 leading-none mb-0.5">Arena Seating Capacity</span>
+                        <span className="font-semibold text-slate-200">{activeCity.capacity} fans</span>
+                      </div>
+                    </div>
+
+                    <div className="flex items-start text-xs text-slate-300">
+                      <MapPin className="w-4 h-4 text-emerald-400 mr-2.5 flex-shrink-0 mt-0.5" />
+                      <div>
+                        <span className="block text-[9px] uppercase font-bold text-slate-500 leading-none mb-0.5">Match Load</span>
+                        <span className="font-semibold text-slate-200">{activeCity.matches} matches scheduled</span>
+                      </div>
+                    </div>
                   </div>
                 </div>
-
-                <div className="flex items-center text-xs text-slate-300">
-                  <Users className="w-4 h-4 text-blue-400 mr-2.5 flex-shrink-0" />
+              ) : (
+                <div className="flex flex-col items-center justify-center text-center h-full space-y-3 py-12">
+                  <div className="w-12 h-12 rounded-full border border-slate-800 flex items-center justify-center text-slate-500 bg-slate-950/80">
+                    <MapPin className="w-6 h-6 animate-pulse" />
+                  </div>
                   <div>
-                    <span className="block text-[9px] uppercase font-bold text-slate-500 leading-none mb-0.5">Total Capacity</span>
-                    <span className="font-semibold text-slate-200">{activeCity.capacity} fans</span>
+                    <h4 className="text-xs font-black text-slate-300 uppercase tracking-widest leading-none">Select a Host City</h4>
+                    <p className="text-[10px] text-slate-500 max-w-xs mt-1.5 leading-relaxed">
+                      Click any city pill badge above to snap the OpenStreetMap camera to the official stadium coords and display seat limits.
+                    </p>
                   </div>
                 </div>
-              </div>
+              )}
             </motion.div>
-          ) : (
-            <div className="mt-6 py-12 text-center border border-dashed border-slate-800 rounded-2xl text-xs text-slate-500 font-medium">
-              Select a city to display details
-            </div>
-          )}
-        </AnimatePresence>
+          </AnimatePresence>
+        </div>
       </div>
     </div>
   );

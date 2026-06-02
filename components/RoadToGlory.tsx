@@ -1,159 +1,181 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Shield, Award, Sparkles } from 'lucide-react';
+import { Award, Trophy, ShieldAlert, Sparkles, Calendar } from 'lucide-react';
 
 interface BracketMatch {
   id: string;
-  round: 'R16' | 'QF' | 'SF' | 'F';
-  t1: string;
-  t2: string;
-  s1?: string;
-  s2?: string;
-  winner?: string;
+  matchNumber: number;
+  homeTeam: string | null;
+  awayTeam: string | null;
+  stage: string;
+  score: string | null;
+  winner: string | null;
 }
 
-const BRACKET: BracketMatch[] = [
-  // Round of 16 (Sample Nodes)
-  { id: '1', round: 'R16', t1: 'Argentina', t2: 'Poland', s1: '2', s2: '0', winner: 'Argentina' },
-  { id: '2', round: 'R16', t1: 'Netherlands', t2: 'USA', s1: '3', s2: '1', winner: 'Netherlands' },
-  { id: '3', round: 'R16', t1: 'Spain', t2: 'Morocco', s1: '0(3)', s2: '0(1)', winner: 'Spain' },
-  { id: '4', round: 'R16', t1: 'England', t2: 'Senegal', s1: '3', s2: '0', winner: 'England' },
-
-  // Quarter Finals
-  { id: '5', round: 'QF', t1: 'Argentina', t2: 'Netherlands', s1: '2(4)', s2: '2(3)', winner: 'Argentina' },
-  { id: '6', round: 'QF', t1: 'Spain', t2: 'England', s1: '1', s2: '2', winner: 'England' },
-
-  // Semi Final
-  { id: '7', round: 'SF', t1: 'Argentina', t2: 'England', winner: 'TBD' },
-
-  // Final
-  { id: '8', round: 'F', t1: 'Winner SF1', t2: 'Winner SF2', winner: 'TBD' },
-];
+interface BracketStages {
+  r32: BracketMatch[];
+  r16: BracketMatch[];
+  qf: BracketMatch[];
+  sf: BracketMatch[];
+  final: BracketMatch[];
+}
 
 export default function RoadToGlory() {
-  const getRoundMatches = (roundName: 'R16' | 'QF' | 'SF' | 'F') =>
-    BRACKET.filter((m) => m.round === roundName);
+  const [stages, setStages] = useState<BracketStages | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    async function fetchBracket() {
+      try {
+        const res = await fetch('/api/bracket');
+        if (!res.ok) throw new Error('Failed to load bracket data');
+        const data = await res.json();
+        if (data.success && data.stages) {
+          setStages(data.stages);
+        } else {
+          throw new Error(data.error || 'Invalid API response');
+        }
+      } catch (err: any) {
+        setError(err.message || 'Failed to fetch bracket data');
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchBracket();
+  }, []);
+
+  const renderTeamRow = (teamName: string | null, score: string | null, isWinner: boolean) => {
+    const isEmpty = !teamName;
+    return (
+      <div className={`flex justify-between items-center py-2 px-3 rounded-lg transition-colors ${
+        isWinner ? 'bg-emerald-950/20 text-emerald-400 font-bold border-l-2 border-emerald-500' : 'text-slate-300'
+      }`}>
+        <span className={`truncate text-xs tracking-wide ${isEmpty ? 'text-slate-600 italic' : ''}`}>
+          {isEmpty ? 'TBD' : teamName}
+        </span>
+        {!isEmpty && score && (
+          <span className="font-mono text-xs font-bold bg-slate-900 px-1.5 py-0.5 rounded border border-slate-800">
+            {score}
+          </span>
+        )}
+      </div>
+    );
+  };
+
+  const renderRoundColumn = (title: string, subtitle: string, matches: BracketMatch[], isFinalRound = false) => {
+    return (
+      <div className="flex flex-col min-w-[260px] md:min-w-0 md:flex-1 space-y-4">
+        <div className="border-b border-slate-900 pb-3">
+          <h3 className="text-[10px] font-black text-slate-500 uppercase tracking-widest leading-none">
+            {title}
+          </h3>
+          <span className="text-[9px] text-slate-600 font-bold uppercase mt-1 block">
+            {subtitle}
+          </span>
+        </div>
+        <div className="flex flex-col justify-around h-full space-y-4 py-2">
+          {matches.map((m) => {
+            const hasHomeWinner = m.winner ? m.winner === m.homeTeam : false;
+            const hasAwayWinner = m.winner ? m.winner === m.awayTeam : false;
+
+            const homeScore = m.score ? m.score.split('-')[0] : null;
+            const awayScore = m.score ? m.score.split('-')[1] : null;
+
+            return (
+              <motion.div
+                key={m.id}
+                whileHover={{ y: -2 }}
+                className={`bg-slate-950/80 border p-3 rounded-2xl shadow-xl flex flex-col space-y-2 relative overflow-hidden transition-all ${
+                  isFinalRound
+                    ? 'border-[#FFD700] ring-1 ring-[#FFD700]/30 shadow-[#FFD700]/5 bg-gradient-to-br from-amber-500/5 via-slate-950 to-slate-950'
+                    : 'border-slate-900/60 hover:border-slate-800/80'
+                }`}
+              >
+                {/* Gold Highlight Ring on Final */}
+                {isFinalRound && (
+                  <div className="absolute -right-8 -top-8 w-16 h-16 bg-[#FFD700]/10 rounded-full blur-xl animate-pulse" />
+                )}
+
+                <div className="text-[9px] font-mono text-slate-500 flex justify-between">
+                  <span>MATCH #{m.matchNumber}</span>
+                  {isFinalRound && (
+                    <span className="text-[#FFD700] font-black tracking-wider flex items-center space-x-0.5">
+                      <Trophy className="w-2.5 h-2.5 stroke-[2.5]" />
+                      <span>THE FINALS</span>
+                    </span>
+                  )}
+                </div>
+
+                <div className="space-y-1">
+                  {renderTeamRow(m.homeTeam, homeScore, hasHomeWinner)}
+                  {renderTeamRow(m.awayTeam, awayScore, hasAwayWinner)}
+                </div>
+
+                {isFinalRound && (
+                  <div className="pt-2 border-t border-slate-900 flex items-center space-x-1.5 text-[9px] font-black text-slate-400 uppercase tracking-tight">
+                    <Calendar className="w-3 h-3 text-[#FFD700]" />
+                    <span>July 19, 2026 · MetLife Stadium, East Rutherford, NJ</span>
+                  </div>
+                )}
+              </motion.div>
+            );
+          })}
+        </div>
+      </div>
+    );
+  };
 
   return (
     <div className="bg-slate-950/40 border border-slate-900 rounded-3xl p-6 md:p-8 backdrop-blur-2xl shadow-2xl relative overflow-hidden">
-      
       {/* Background spotlights */}
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_70%,rgba(16,185,129,0.04)_0%,transparent_60%)] pointer-events-none" />
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_70%,rgba(255,215,0,0.02)_0%,transparent_60%)] pointer-events-none" />
 
       {/* Header section */}
-      <div className="text-center max-w-xl mx-auto mb-12">
-        <div className="inline-flex items-center space-x-2 bg-emerald-950/60 border border-emerald-500/20 rounded-full px-3.5 py-1 text-[10px] font-black text-emerald-400 uppercase tracking-widest mb-4">
+      <div className="text-center max-w-xl mx-auto mb-10">
+        <div className="inline-flex items-center space-x-2 bg-amber-950/40 border border-[#FFD700]/20 rounded-full px-3.5 py-1 text-[10px] font-black text-[#FFD700] uppercase tracking-widest mb-4">
           <Sparkles className="w-3.5 h-3.5" />
-          <span>Championship Path</span>
+          <span>FIFA Tournament Grid</span>
         </div>
         <h2 className="text-3xl font-black text-white uppercase tracking-tight">
           Road To Glory
         </h2>
-        <p className="text-xs text-slate-500 mt-2 leading-relaxed">
-          Follow the knockout stages from the Round of 16 to the final showdown at MetLife Stadium.
+        <p className="text-xs text-slate-400 mt-2 leading-relaxed">
+          Track the live championship path. Bracket slots activate only when official qualification data is resolved by the football-data.org API.
         </p>
       </div>
 
-      {/* Bracket flex Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 items-center relative z-10">
-        
-        {/* ROUND OF 16 */}
-        <div className="space-y-4">
-          <h3 className="text-[10px] font-black text-slate-500 uppercase tracking-widest border-b border-slate-900 pb-2 mb-4">Round of 16</h3>
-          {getRoundMatches('R16').map((m) => (
-            <motion.div
-              key={m.id}
-              whileHover={{ x: 4 }}
-              className="bg-slate-900/60 border border-slate-850 rounded-xl p-3 shadow-md space-y-2 text-xs"
-            >
-              <div className="flex justify-between items-center">
-                <span className={`font-semibold ${m.winner === m.t1 ? 'text-emerald-400 font-bold' : 'text-slate-300'}`}>{m.t1}</span>
-                <span className="font-mono font-bold text-slate-400">{m.s1 || '-'}</span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className={`font-semibold ${m.winner === m.t2 ? 'text-emerald-400 font-bold' : 'text-slate-300'}`}>{m.t2}</span>
-                <span className="font-mono font-bold text-slate-400">{m.s2 || '-'}</span>
-              </div>
-            </motion.div>
-          ))}
+      {loading && (
+        <div className="flex flex-col items-center justify-center py-20 space-y-3">
+          <div className="w-8 h-8 rounded-full border-2 border-[#FFD700] border-t-transparent animate-spin" />
+          <span className="text-[10px] text-slate-400 font-bold uppercase tracking-widest animate-pulse">
+            Analyzing Championship Brackets...
+          </span>
         </div>
+      )}
 
-        {/* QUARTER FINALS */}
-        <div className="space-y-6">
-          <h3 className="text-[10px] font-black text-slate-500 uppercase tracking-widest border-b border-slate-900 pb-2 mb-4">Quarter Finals</h3>
-          {getRoundMatches('QF').map((m) => (
-            <motion.div
-              key={m.id}
-              whileHover={{ x: 4 }}
-              className="bg-slate-900/60 border border-slate-850 rounded-xl p-3.5 shadow-md space-y-2 text-xs"
-            >
-              <div className="flex justify-between items-center">
-                <span className={`font-semibold ${m.winner === m.t1 ? 'text-emerald-400 font-bold' : 'text-slate-300'}`}>{m.t1}</span>
-                <span className="font-mono font-bold text-slate-400">{m.s1 || '-'}</span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className={`font-semibold ${m.winner === m.t2 ? 'text-emerald-400 font-bold' : 'text-slate-300'}`}>{m.t2}</span>
-                <span className="font-mono font-bold text-slate-400">{m.s2 || '-'}</span>
-              </div>
-            </motion.div>
-          ))}
+      {error && (
+        <div className="flex flex-col items-center justify-center py-12 text-center space-y-3 bg-red-950/10 border border-red-500/20 rounded-2xl">
+          <ShieldAlert className="w-8 h-8 text-red-400" />
+          <span className="text-xs text-red-300 font-medium">
+            Could not fetch real-time bracket data.
+          </span>
+          <p className="text-[10px] text-slate-500 max-w-xs">{error}</p>
         </div>
+      )}
 
-        {/* SEMI FINALS */}
-        <div className="space-y-12">
-          <h3 className="text-[10px] font-black text-slate-500 uppercase tracking-widest border-b border-slate-900 pb-2 mb-4">Semi Finals</h3>
-          {getRoundMatches('SF').map((m) => (
-            <motion.div
-              key={m.id}
-              whileHover={{ x: 4 }}
-              className="bg-slate-900/60 border border-emerald-500/20 rounded-2xl p-4 shadow-xl space-y-2.5 text-xs relative overflow-hidden"
-            >
-              {/* Highlight bar */}
-              <div className="absolute top-0 left-0 right-0 h-[2px] bg-emerald-500/40" />
-              <div className="flex justify-between items-center">
-                <span className="font-bold text-slate-200">{m.t1}</span>
-                <span className="font-mono text-slate-400">-</span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="font-bold text-slate-200">{m.t2}</span>
-                <span className="font-mono text-slate-400">-</span>
-              </div>
-            </motion.div>
-          ))}
+      {!loading && !error && stages && (
+        /* Horizontal scrolling on mobile, full grid on desktop */
+        <div className="flex md:grid md:grid-cols-5 gap-6 overflow-x-auto pb-4 md:pb-0 scrollbar-thin relative z-10">
+          {renderRoundColumn('Round of 32', '16 Matches', stages.r32)}
+          {renderRoundColumn('Round of 16', '8 Matches', stages.r16)}
+          {renderRoundColumn('Quarter-Finals', '4 Matches', stages.qf)}
+          {renderRoundColumn('Semi-Finals', '2 Matches', stages.sf)}
+          {renderRoundColumn('Championship Final', '1 Match', stages.final, true)}
         </div>
-
-        {/* CHAMPIONSHIP FINAL */}
-        <div>
-          <h3 className="text-[10px] font-black text-slate-500 uppercase tracking-widest border-b border-slate-900 pb-2 mb-4">Final Showdown</h3>
-          {getRoundMatches('F').map((m) => (
-            <motion.div
-              key={m.id}
-              whileHover={{ scale: 1.02 }}
-              className="bg-gradient-to-br from-emerald-500/10 via-slate-900/90 to-slate-950/90 border border-emerald-500/40 rounded-2xl p-5 shadow-2xl relative overflow-hidden text-center space-y-4"
-            >
-              {/* Gold light shine */}
-              <div className="absolute -left-12 -top-12 w-24 h-24 bg-yellow-500/10 rounded-full blur-xl animate-pulse" />
-              
-              <div className="flex justify-center mb-1">
-                <Award className="w-8 h-8 text-yellow-500 stroke-[2] animate-bounce" />
-              </div>
-
-              <div className="space-y-2 text-xs">
-                <span className="block font-black text-slate-300 uppercase tracking-wide">{m.t1}</span>
-                <span className="block text-[10px] font-extrabold text-emerald-400 uppercase tracking-widest">VS</span>
-                <span className="block font-black text-slate-300 uppercase tracking-wide">{m.t2}</span>
-              </div>
-
-              <span className="block text-[9px] font-bold text-slate-500 uppercase tracking-wider bg-slate-950/80 py-1.5 rounded-lg border border-slate-900">
-                July 19, 2026 @ MetLife
-              </span>
-            </motion.div>
-          ))}
-        </div>
-
-      </div>
+      )}
     </div>
   );
 }

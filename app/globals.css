@@ -102,3 +102,30 @@ body {
 ::-webkit-scrollbar-thumb:hover {
   background: #10b981;
 }
+
+/* Trophy Glow Pulse and Float Animations */
+@keyframes trophyPulse {
+  0%, 100% {
+    box-shadow: 0 0 15px rgba(255, 215, 0, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 45px rgba(255, 215, 0, 0.75);
+  }
+}
+
+@keyframes trophyFloat {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
+.animate-trophy-pulse {
+  animation: trophyPulse 2s infinite ease-in-out;
+}
+
+.animate-trophy-float {
+  animation: trophyFloat 3s infinite ease-in-out;
+}

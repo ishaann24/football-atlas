@@ -9,9 +9,10 @@ import RegisterForm from '@/components/RegisterForm';
 import Countdown from '@/components/Countdown';
 import WorldMap from '@/components/WorldMap';
 import RoadToGlory from '@/components/RoadToGlory';
+import TrophyShowcase from '@/components/TrophyShowcase';
 import LenisProvider from '@/components/LenisProvider';
 import { motion, useScroll, useSpring, useTransform } from 'framer-motion';
-import { Search, Trophy, Calendar, Bell, ChevronRight, Activity, Globe, Sparkles } from 'lucide-react';
+import { Search, Trophy, Calendar, ChevronDown, ChevronRight, Activity, Globe, Sparkles } from 'lucide-react';
 
 // Bypassing Server-Side Rendering (SSR) for browser-only Three.js WebGL canvas
 const WorldCupScene = dynamic(() => import('@/components/three/WorldCupScene'), {
@@ -37,6 +38,40 @@ const TEAM_FLAGS = [
   { flag: '🇩🇪', name: 'Germany' },
 ];
 
+// IntersectionObserver helper for scroll-triggered fade-ins
+function ScrollFadeIn({ children }: { children: React.ReactNode }) {
+  const ref = useRef<HTMLDivElement>(null);
+  const [isVisible, setIsVisible] = useState(false);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setIsVisible(true);
+          observer.unobserve(entry.target); // trigger animation only once
+        }
+      },
+      { threshold: 0.1 }
+    );
+
+    if (ref.current) {
+      observer.observe(ref.current);
+    }
+    return () => observer.disconnect();
+  }, []);
+
+  return (
+    <div
+      ref={ref}
+      className={`transition-all duration-1000 ease-out transform ${
+        isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
+      }`}
+    >
+      {children}
+    </div>
+  );
+}
+
 export default function Home() {
   const [selectedTimezone, setSelectedTimezone] = useState('Asia/Kolkata'); // Default to IST
   const [searchTerm, setSearchTerm] = useState('');
@@ -44,7 +79,7 @@ export default function Home() {
   const [selectedStage, setSelectedStage] = useState('All');
 
   // Track absolute window scroll coordinate
-  const { scrollYProgress } = useScroll();
+  const { scrollY, scrollYProgress } = useScroll();
 
   // Apply spring damping to smooth out scroll coordinates for UI transforms
   const smoothScrollProgress = useSpring(scrollYProgress, {
@@ -97,15 +132,31 @@ export default function Home() {
     });
   }, [matches, selectedTeam, searchTerm, selectedStage]);
 
-  // Framer Motion transforms to drive text reveals based on scroll progress (smoothed via spring)
-  const tunnelTextOpacity = useTransform(smoothScrollProgress, [0, 0.28], [1, 0]);
-  const tunnelTextScale = useTransform(smoothScrollProgress, [0, 0.28], [1, 0.8]);
+  // Parallax zoom for MetLife Stadium background
+  const heroBgScale = useTransform(smoothScrollProgress, [0, 0.3], [1, 1.15]);
+  const heroBgOpacity = useTransform(smoothScrollProgress, [0.15, 0.32], [1, 0]);
+
+  // Text reveals based on scroll progress
+  const heroTextOpacity = useTransform(smoothScrollProgress, [0, 0.25], [1, 0]);
+  const heroTextY = useTransform(smoothScrollProgress, [0, 0.25], [0, -85]);
 
   const lightsTextOpacity = useTransform(smoothScrollProgress, [0.18, 0.35, 0.48], [0, 1, 0]);
   const lightsTextY = useTransform(smoothScrollProgress, [0.18, 0.35, 0.48], [50, 0, -50]);
 
   const trophyTextOpacity = useTransform(smoothScrollProgress, [0.42, 0.58, 0.72], [0, 1, 0]);
   const trophyTextY = useTransform(smoothScrollProgress, [0.42, 0.58, 0.72], [50, 0, -50]);
+
+  // Football scroll animation values
+  const ballY = useTransform(scrollY, (y) => y * 0.3);
+  const ballRotate = useTransform(scrollY, (y) => y * 0.5);
+  const ballOpacity = useTransform(scrollYProgress, [0.88, 0.95], [1, 0]);
+
+  const [isKicked, setIsKicked] = useState(false);
+  const handleBallClick = () => {
+    if (isKicked) return;
+    setIsKicked(true);
+    setTimeout(() => setIsKicked(false), 600);
+  };
 
   return (
     <LenisProvider>
@@ -116,19 +167,79 @@ export default function Home() {
           <WorldCupScene />
         </div>
 
+        {/* Floating Football Scroll Parallax Wrapper */}
+        <motion.div
+          style={{
+            y: ballY,
+            opacity: ballOpacity,
+            top: '15%',
+          }}
+          className="fixed right-6 z-40 w-9 h-9 md:w-[52px] md:h-[52px] pointer-events-auto select-none"
+        >
+          {/* Inner animation container handles rotation + kick effect */}
+          <motion.div
+            onClick={handleBallClick}
+            style={{ rotate: ballRotate }}
+            animate={isKicked ? { x: -60, y: -20, rotate: 360, scale: 0.8 } : { x: 0, y: 0, scale: 1 }}
+            transition={{ duration: 0.6, ease: [0.175, 0.885, 0.32, 1.275] }}
+            className="w-full h-full cursor-pointer"
+          >
+            {/* Realistic Detailed SVG Football */}
+            <svg viewBox="0 0 100 100" className="w-full h-full drop-shadow-[0_8px_16px_rgba(0,0,0,0.5)]">
+              <defs>
+                <radialGradient id="ball-shading" cx="30%" cy="30%" r="70%">
+                  <stop offset="0%" stopColor="#ffffff" />
+                  <stop offset="60%" stopColor="#f1f5f9" />
+                  <stop offset="100%" stopColor="#94a3b8" />
+                </radialGradient>
+              </defs>
+              {/* White base sphere */}
+              <circle cx="50" cy="50" r="47" fill="url(#ball-shading)" stroke="#0f172a" strokeWidth="2" />
+              
+              {/* Pentagonal center panel */}
+              <polygon points="50,38 61,46 57,59 43,59 39,46" fill="#0f172a" />
+              
+              {/* Seam lines radiating from center */}
+              <line x1="50" y1="38" x2="50" y2="20" stroke="#0f172a" strokeWidth="2" />
+              <line x1="61" y1="46" x2="77" y2="42" stroke="#0f172a" strokeWidth="2" />
+              <line x1="57" y1="59" x2="68" y2="74" stroke="#0f172a" strokeWidth="2" />
+              <line x1="43" y1="59" x2="32" y2="74" stroke="#0f172a" strokeWidth="2" />
+              <line x1="39" y1="46" x2="23" y2="42" stroke="#0f172a" strokeWidth="2" />
+              
+              {/* Outer edge pentagonal panels */}
+              <polygon points="50,20 37,15 39,3 50,0 61,3 63,15" fill="#0f172a" />
+              <polygon points="77,42 87,31 96,37 97,49 89,56 78,52" fill="#0f172a" />
+              <polygon points="68,74 65,87 74,96 85,92 84,79 74,72" fill="#0f172a" />
+              <polygon points="32,74 35,87 26,96 15,92 16,79 26,72" fill="#0f172a" />
+              <polygon points="23,42 13,31 4,37 3,49 11,56 22,52" fill="#0f172a" />
+              
+              {/* Outer boundary connecting seams */}
+              <line x1="37" y1="15" x2="39" y2="46" stroke="#0f172a" strokeWidth="2" />
+              <line x1="63" y1="15" x2="61" y2="46" stroke="#0f172a" strokeWidth="2" />
+              <line x1="78" y1="52" x2="57" y2="59" stroke="#0f172a" strokeWidth="2" />
+              <line x1="74" y1="72" x2="68" y2="74" stroke="#0f172a" strokeWidth="2" />
+              <line x1="26" y1="72" x2="32" y2="74" stroke="#0f172a" strokeWidth="2" />
+              <line x1="22" y1="52" x2="43" y2="59" stroke="#0f172a" strokeWidth="2" />
+            </svg>
+          </motion.div>
+        </motion.div>
+
         {/* Global sticky header */}
         <header className="fixed top-0 left-0 right-0 border-b border-slate-900/60 bg-slate-950/70 backdrop-blur-xl z-50">
-          <div className="max-w-7xl mx-auto px-4 md:px-8 py-4 flex flex-col md:flex-row items-center justify-between gap-4">
+          <div className="max-w-7xl mx-auto px-4 md:px-8 py-3.5 flex flex-col md:flex-row items-center justify-between gap-4">
             <div className="flex items-center space-x-3 group cursor-pointer">
-              <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-emerald-500 to-teal-400 flex items-center justify-center shadow-lg shadow-emerald-500/10">
-                <Trophy className="w-5 h-5 text-slate-950 stroke-[2.5]" />
-              </div>
+              {/* Official FIFA 2026 emblem SVG replaces legacy Trophy icon */}
+              <img
+                src="https://upload.wikimedia.org/wikipedia/en/d/d0/2026_FIFA_World_Cup_emblem.svg"
+                alt="FIFA World Cup 2026 Emblem"
+                className="h-8 w-auto object-contain"
+              />
               <div>
-                <h1 className="text-lg font-black text-white tracking-tight uppercase">
-                  FIFA World Cup <span className="text-emerald-400">2026</span>
+                <h1 className="text-lg font-black text-white tracking-tight uppercase leading-none">
+                  FIFA World Cup <span className="text-[#FFD700]">2026</span>
                 </h1>
-                <p className="text-[9px] text-slate-500 font-black uppercase tracking-widest leading-none mt-0.5">
-                  Cinematic Hub
+                <p className="text-[9px] text-[#FFD700] font-black uppercase tracking-widest leading-none mt-1">
+                  Official Fan Hub
                 </p>
               </div>
             </div>
@@ -146,21 +257,58 @@ export default function Home() {
         {/* SCROLL STORY SECTIONS */}
         {/* ========================================================================= */}
 
-        {/* SECTION 1: Dark Stadium Tunnel Entrance (ScrollHeight: 100vh) */}
-        <section className="relative h-screen w-full flex flex-col items-center justify-center text-center px-4 z-10 select-none">
-          <motion.div style={{ opacity: tunnelTextOpacity, scale: tunnelTextScale }} className="space-y-6 max-w-3xl">
-            <div className="inline-flex items-center space-x-2 bg-slate-900/80 border border-slate-800 rounded-full px-4 py-1.5 text-xs text-slate-400 font-bold tracking-widest uppercase">
-              <Globe className="w-4 h-4 text-emerald-400 animate-spin" style={{ animationDuration: '8s' }} />
-              <span>Entering SoFi Stadium Tunnel</span>
+        {/* FIX 2: CINEMATIC HERO — METLIFE SCROLL ZOOM (ScrollHeight: 100vh) */}
+        <section className="relative h-screen w-full flex flex-col items-center justify-center text-center px-4 z-10 select-none overflow-hidden bg-black">
+          
+          {/* Zooming background container */}
+          <motion.div
+            initial={{ scale: 0.95, opacity: 0 }}
+            animate={{ scale: 1.0, opacity: 1 }}
+            transition={{ duration: 1.2, ease: 'easeOut' }}
+            className="absolute inset-0 w-full h-full overflow-hidden"
+          >
+            <motion.div
+              style={{
+                scale: heroBgScale,
+                opacity: heroBgOpacity,
+                backgroundImage: `url('https://upload.wikimedia.org/wikipedia/commons/thumb/4/47/MetLife_Stadium_aerial.jpg/1280px-MetLife_Stadium_aerial.jpg')`,
+              }}
+              className="w-full h-full bg-cover bg-center"
+            />
+          </motion.div>
+
+          {/* Dark Overlay Gradient (bottom 60% -> black) */}
+          <div className="absolute inset-0 bg-gradient-to-t from-[#020617] via-[#020617]/70 to-[#020617]/10 pointer-events-none z-10" />
+
+          {/* Fade-out Hero Text content */}
+          <motion.div 
+            style={{ opacity: heroTextOpacity, y: heroTextY }} 
+            className="space-y-6 max-w-4xl z-20"
+          >
+            <div className="inline-flex items-center space-x-2 bg-slate-950/80 border border-slate-900 rounded-full px-4 py-1.5 text-xs text-slate-400 font-bold tracking-widest uppercase shadow-xl">
+              <Globe className="w-4 h-4 text-[#FFD700] animate-spin" style={{ animationDuration: '8s' }} />
+              <span>MetLife Arena Opening Kickoff</span>
             </div>
+            
             <h1 className="text-5xl md:text-8xl font-black text-white uppercase tracking-tighter leading-none">
-              UNITED <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-emerald-600">2026</span>
+              UNITED <span className="text-transparent bg-clip-text bg-gradient-to-r from-yellow-100 via-[#FFD700] to-amber-500">2026</span>
             </h1>
-            <p className="text-slate-400 font-mono text-xs md:text-sm uppercase tracking-widest">
+            
+            <p className="text-slate-300 font-mono text-xs md:text-sm uppercase tracking-widest max-w-md mx-auto leading-relaxed">
               48 Nations. 104 Matches. One Champion.
             </p>
-            <div className="pt-6 animate-bounce text-xs font-bold text-slate-500 uppercase tracking-widest">
-              Scroll Down to Step Out
+          </motion.div>
+
+          {/* Bouncing Scroll Indicator */}
+          <motion.div 
+            style={{ opacity: heroTextOpacity }}
+            className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center space-y-1.5 z-20 pointer-events-none"
+          >
+            <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest leading-none">
+              Scroll to Explore
+            </span>
+            <div className="w-5 h-5 flex items-center justify-center rounded-full bg-slate-950/60 border border-slate-900 animate-bounce">
+              <ChevronDown className="w-3.5 h-3.5 text-[#FFD700]" />
             </div>
           </motion.div>
         </section>
@@ -168,8 +316,8 @@ export default function Home() {
         {/* SECTION 2: Floodlights Reveal (ScrollHeight: 100vh) */}
         <section className="relative h-screen w-full flex items-center justify-center text-center px-4 z-10 pointer-events-none">
           <motion.div style={{ opacity: lightsTextOpacity, y: lightsTextY }} className="space-y-4 max-w-2xl">
-            <h2 className="text-4xl md:text-6xl font-black text-white uppercase tracking-tight">
-              Floodlights Activated.
+            <h2 className="text-4xl md:text-6xl font-black text-white uppercase tracking-tight leading-tight">
+              Spotlights Activated.
             </h2>
             <p className="text-slate-400 text-xs md:text-sm leading-relaxed max-w-md mx-auto">
               Step onto the pitch. Volumetric spotlights illuminate the grand arena as the crowd roars.
@@ -180,7 +328,7 @@ export default function Home() {
         {/* SECTION 3: Golden Trophy Focus (ScrollHeight: 100vh) */}
         <section className="relative h-screen w-full flex items-center justify-center text-center px-4 z-10 pointer-events-none">
           <motion.div style={{ opacity: trophyTextOpacity, y: trophyTextY }} className="space-y-4 max-w-xl">
-            <h2 className="text-4xl md:text-6xl font-black text-white uppercase tracking-tight">
+            <h2 className="text-4xl md:text-6xl font-black text-white uppercase tracking-tight leading-tight">
               The Ultimate Glory.
             </h2>
             <p className="text-slate-400 text-xs md:text-sm leading-relaxed">
@@ -195,16 +343,16 @@ export default function Home() {
             
             {/* Left Column: Live Ticker */}
             <div className="lg:col-span-6 space-y-6 text-center lg:text-left">
-              <span className="inline-flex items-center space-x-2 bg-emerald-950/60 border border-emerald-500/20 rounded-full px-3.5 py-1 text-xs text-emerald-400 font-bold uppercase tracking-wide">
+              <span className="inline-flex items-center space-x-2 bg-amber-950/30 border border-[#FFD700]/25 rounded-full px-3.5 py-1 text-xs text-[#FFD700] font-bold uppercase tracking-wide">
                 <Sparkles className="w-3.5 h-3.5 animate-pulse" />
                 <span>Campaign Countdown</span>
               </span>
               <h2 className="text-4xl md:text-6xl font-black text-white uppercase tracking-tight leading-none">
                 The Clock <br />
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-blue-400">Is Ticking.</span>
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-yellow-100 via-[#FFD700] to-yellow-500">Is Ticking.</span>
               </h2>
               <p className="text-xs text-slate-400 leading-relaxed max-w-md">
-                Days away from the historic opening match. Ensure you register for goal alerts below to follow every match event instantly.
+                Days away from the historic opening kickoff. Register for goal alerts below to follow every match event instantly.
               </p>
               <div className="pt-2">
                 <Countdown />
@@ -223,7 +371,7 @@ export default function Home() {
                       const scheduleEl = document.getElementById('schedules');
                       if (scheduleEl) scheduleEl.scrollIntoView({ behavior: 'smooth' });
                     }}
-                    className="bg-slate-950/80 border border-slate-900 hover:border-emerald-500/35 p-5 rounded-2xl flex flex-col items-center justify-center text-center shadow-xl backdrop-blur-md transition-colors"
+                    className="bg-slate-950/80 border border-slate-900 hover:border-[#FFD700]/30 p-5 rounded-2xl flex flex-col items-center justify-center text-center shadow-xl backdrop-blur-md transition-colors"
                   >
                     <span className="text-3xl mb-2">{t.flag}</span>
                     <span className="text-[10px] font-black text-slate-300 uppercase tracking-widest">{t.name}</span>
@@ -235,135 +383,117 @@ export default function Home() {
         </section>
 
         {/* SECTION 5: Tournament Bracket, Stadium Map, and Fixtures Schedule */}
-        <div className="relative bg-gradient-to-b from-[#020617]/0 via-[#020617]/95 to-[#020617] pt-20 pb-12 z-10">
+        <div className="relative bg-gradient-to-b from-[#020617]/0 via-[#020617]/95 to-[#020617] pt-20 pb-12 z-10 space-y-24">
           
           {/* Fan Signup block */}
-          <div className="max-w-4xl mx-auto px-4 md:px-8 mb-24">
-            <RegisterForm />
-          </div>
-
-          {/* Interactive World map of Host Cities */}
-          <div className="max-w-7xl mx-auto px-4 md:px-8 mb-24">
-            <div className="flex items-center space-x-2.5 mb-8">
-              <div className="w-1.5 h-6 bg-emerald-500 rounded-full" />
-              <h2 className="text-xl md:text-2xl font-black text-white uppercase tracking-wider">
-                16 Host Cities Vector Showcase
-              </h2>
+          <ScrollFadeIn>
+            <div className="max-w-4xl mx-auto px-4 md:px-8">
+              <RegisterForm />
             </div>
-            <WorldMap />
-          </div>
+          </ScrollFadeIn>
 
-          {/* Road to Glory bracket */}
-          <div className="max-w-7xl mx-auto px-4 md:px-8 mb-24">
-            <RoadToGlory />
-          </div>
-
-          {/* Test Cron Banner */}
-          <div className="max-w-7xl mx-auto px-4 md:px-8 mb-24">
-            <div className="bg-gradient-to-r from-emerald-950/20 via-slate-900/60 to-blue-950/20 border border-slate-900 rounded-3xl p-6 md:p-8 flex flex-col md:flex-row items-center justify-between gap-6 shadow-2xl">
-              <div className="flex items-center space-x-4">
-                <div className="w-14 h-14 rounded-2xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center flex-shrink-0 shadow-lg">
-                  <Bell className="w-6 h-6 text-blue-400 animate-bounce" />
-                </div>
-                <div>
-                  <h3 className="text-base font-black text-white tracking-tight">Interactive Goal Alerts Testing Sandbox</h3>
-                  <p className="text-xs text-slate-400 mt-1 max-w-lg">
-                    Click this button to trigger a simulated match goal (e.g. USA vs Colombia). It checks the Database and dispatches your Welcome Email or Goal Alert instantly!
-                  </p>
-                </div>
-              </div>
-              <a
-                href="/api/cron"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center space-x-2 py-3.5 px-6 bg-slate-900 hover:bg-slate-850 text-xs font-bold text-slate-200 border border-slate-800 rounded-xl transition-all hover:border-slate-700 shadow-xl"
-              >
-                <span>Trigger Simulated Goal Cron</span>
-                <ChevronRight className="w-4 h-4" />
-              </a>
+          {/* Interactive OSM map of Host Cities */}
+          <ScrollFadeIn>
+            <div className="max-w-7xl mx-auto px-4 md:px-8">
+              <WorldMap />
             </div>
-          </div>
+          </ScrollFadeIn>
 
           {/* Schedule Filter Feeds */}
-          <div id="schedules" className="max-w-7xl mx-auto px-4 md:px-8 scroll-mt-24">
-            <div className="flex items-center space-x-2.5 mb-8">
-              <div className="w-1.5 h-6 bg-emerald-500 rounded-full" />
-              <h2 className="text-xl md:text-2xl font-black text-white uppercase tracking-wider">
-                Match Schedules
-              </h2>
-            </div>
-
-            {/* Filter toolbar */}
-            <div className="bg-slate-950/60 border border-slate-900 p-4 rounded-2xl mb-8 flex flex-col md:flex-row gap-4 items-center justify-between shadow-2xl backdrop-blur-md">
-              <div className="relative w-full md:max-w-xs">
-                <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
-                <input
-                  type="text"
-                  placeholder="Search team, stadium, group..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full bg-slate-900/60 border border-slate-800 hover:border-slate-700 focus:border-emerald-500/60 text-white rounded-xl py-2.5 pl-10 pr-4 text-xs font-bold outline-none transition-colors"
-                />
+          <ScrollFadeIn>
+            <div id="schedules" className="max-w-7xl mx-auto px-4 md:px-8 scroll-mt-24">
+              <div className="flex items-center space-x-2.5 mb-8">
+                <div className="w-1.5 h-6 bg-[#FFD700] rounded-full" />
+                <h2 className="text-xl md:text-2xl font-black text-white uppercase tracking-wider">
+                  Match Schedules
+                </h2>
               </div>
 
-              <div className="flex flex-wrap items-center gap-3 w-full md:w-auto">
-                <select
-                  value={selectedTeam}
-                  onChange={(e) => setSelectedTeam(e.target.value)}
-                  className="bg-slate-900/60 border border-slate-800 hover:border-slate-700 text-slate-300 text-xs font-black rounded-xl py-2.5 px-4 outline-none focus:border-emerald-500 cursor-pointer min-w-[140px]"
-                >
-                  <option value="All">All Nations</option>
-                  {uniqueTeams.map((team) => (
-                    <option key={team} value={team}>
-                      {team}
-                    </option>
-                  ))}
-                </select>
+              {/* Filter toolbar */}
+              <div className="bg-slate-950/60 border border-slate-900 p-4 rounded-2xl mb-8 flex flex-col md:flex-row gap-4 items-center justify-between shadow-2xl backdrop-blur-md">
+                <div className="relative w-full md:max-w-xs">
+                  <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+                  <input
+                    type="text"
+                    placeholder="Search team, stadium, stage..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="w-full bg-slate-900/60 border border-slate-800 hover:border-slate-700 focus:border-[#FFD700]/60 text-white rounded-xl py-2.5 pl-10 pr-4 text-xs font-bold outline-none transition-colors"
+                  />
+                </div>
 
-                <select
-                  value={selectedStage}
-                  onChange={(e) => setSelectedStage(e.target.value)}
-                  className="bg-slate-900/60 border border-slate-800 hover:border-slate-700 text-slate-300 text-xs font-black rounded-xl py-2.5 px-4 outline-none focus:border-emerald-500 cursor-pointer min-w-[140px]"
-                >
-                  <option value="All">All Stages</option>
-                  <option value="Group Stage">Group Stage</option>
-                  <option value="Knockouts">Knockout Phase</option>
-                </select>
-
-                {(searchTerm !== '' || selectedTeam !== 'All' || selectedStage !== 'All') && (
-                  <button
-                    onClick={() => {
-                      setSearchTerm('');
-                      setSelectedTeam('All');
-                      setSelectedStage('All');
-                    }}
-                    className="text-xs text-emerald-400 font-bold hover:text-emerald-300 transition-colors py-2 px-3"
+                <div className="flex flex-wrap items-center gap-3 w-full md:w-auto">
+                  <select
+                    value={selectedTeam}
+                    onChange={(e) => setSelectedTeam(e.target.value)}
+                    className="bg-slate-900/60 border border-slate-800 hover:border-slate-700 text-slate-300 text-xs font-black rounded-xl py-2.5 px-4 outline-none focus:border-[#FFD700] cursor-pointer min-w-[140px]"
                   >
-                    Clear Filters
-                  </button>
-                )}
+                    <option value="All">All Nations</option>
+                    {uniqueTeams.map((team) => (
+                      <option key={team} value={team}>
+                        {team}
+                      </option>
+                    ))}
+                  </select>
+
+                  <select
+                    value={selectedStage}
+                    onChange={(e) => setSelectedStage(e.target.value)}
+                    className="bg-slate-900/60 border border-slate-800 hover:border-slate-700 text-slate-300 text-xs font-black rounded-xl py-2.5 px-4 outline-none focus:border-[#FFD700] cursor-pointer min-w-[140px]"
+                  >
+                    <option value="All">All Stages</option>
+                    <option value="Group Stage">Group Stage</option>
+                    <option value="Knockouts">Knockout Phase</option>
+                  </select>
+
+                  {(searchTerm !== '' || selectedTeam !== 'All' || selectedStage !== 'All') && (
+                    <button
+                      onClick={() => {
+                        setSearchTerm('');
+                        setSelectedTeam('All');
+                        setSelectedStage('All');
+                      }}
+                      className="text-xs text-[#FFD700] font-bold hover:text-[#FFD700]/80 transition-colors py-2 px-3"
+                    >
+                      Clear Filters
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              {/* Fixture cards grid */}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {filteredMatches.map((match) => (
+                  <MatchCard
+                    key={match.id}
+                    match={match}
+                    timezone={selectedTimezone}
+                  />
+                ))}
               </div>
             </div>
+          </ScrollFadeIn>
 
-            {/* Fixture cards grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {filteredMatches.map((match) => (
-                <MatchCard
-                  key={match.id}
-                  match={match}
-                  timezone={selectedTimezone}
-                />
-              ))}
+          {/* FIX 4: Dedicated Trophy Showcase Section */}
+          <ScrollFadeIn>
+            <TrophyShowcase />
+          </ScrollFadeIn>
+
+          {/* Road to Glory bracket */}
+          <ScrollFadeIn>
+            <div className="max-w-7xl mx-auto px-4 md:px-8">
+              <RoadToGlory />
             </div>
-          </div>
+          </ScrollFadeIn>
+
         </div>
 
         {/* Footer */}
-        <footer className="relative border-t border-slate-900/60 pt-8 text-center text-xs text-slate-500 z-10 bg-slate-950/40">
-          <div className="max-w-7xl mx-auto px-4 pb-8">
+        <footer className="relative border-t border-slate-900/60 pt-8 text-center text-xs text-slate-500 z-10 bg-slate-950/40 pb-10">
+          <div className="max-w-7xl mx-auto px-4">
             <p>© {new Date().getFullYear()} FIFA World Cup 2026 Fan Website. Powered by Next.js & WebGL.</p>
-            <p className="mt-1.5 text-[9px] text-slate-600">
-              This site is an unofficial fan demonstration and is not associated with FIFA.
+            <p className="mt-2 text-[10px] text-slate-650 leading-relaxed max-w-md mx-auto">
+              The FIFA World Cup Trophy has been awarded since 1974. This is a fan site, not affiliated with FIFA.
             </p>
           </div>
         </footer>
