@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100%" height="100%">
+  <defs>
+    <linearGradient id="gold-grad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#fffbeb"/>
+      <stop offset="35%" stop-color="#FCD34D"/>
+      <stop offset="70%" stop-color="#D97706"/>
+      <stop offset="100%" stop-color="#78350F"/>
+    </linearGradient>
+  </defs>
+  
+  {/* The bold white 26 numbers */}
+  <text x="50%" y="78" font-family="'Inter', 'Arial Black', sans-serif" font-weight="900" font-size="82" fill="#ffffff" text-anchor="middle" letter-spacing="-4">26</text>
+  
+  {/* The gold trophy overlay in the center foreground */}
+  <g transform="translate(34, 15) scale(0.16)">
+    {/* Base cylinder */}
+    <path d="M 30 180 C 30 170, 70 170, 70 180 L 67 195 C 67 197, 33 197, 33 195 Z" fill="url(#gold-grad)" />
+    {/* Green Malachite bands */}
+    <ellipse cx="50" cy="183" rx="19" ry="3" fill="#10b981" />
+    <ellipse cx="50" cy="176" rx="18" ry="2.5" fill="#10b981" />
+    {/* Stem columns */}
+    <path d="M 43 145 Q 50 160 43 173 L 57 173 Q 50 160 57 145 Z" fill="url(#gold-grad)" />
+    {/* Body ribbons */}
+    <path d="M 38 95 C 38 115, 45 145, 45 145 L 55 145 C 55 145, 62 115, 62 95 Q 50 110 38 95 Z" fill="url(#gold-grad)" />
+    <path d="M 28 100 C 33 115, 43 130, 45 145 C 43 140, 38 125, 27 115 Z" fill="url(#gold-grad)" opacity="0.9" />
+    <path d="M 72 100 C 67 115, 57 130, 55 145 C 57 140, 62 125, 73 115 Z" fill="url(#gold-grad)" opacity="0.9" />
+    {/* Top sphere globe */}
+    <circle cx="50" cy="72" r="23" fill="url(#gold-grad)" />
+    <path d="M 34 70 Q 42 62 50 67 Q 53 70 61 64 Q 69 66 65 76 Q 58 73 53 82 Q 45 79 34 70 Z" fill="#78350F" opacity="0.6" />
+  </g>
+</svg>

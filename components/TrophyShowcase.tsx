@@ -27,7 +27,7 @@ export default function TrophyShowcase() {
             
             <div className="animate-trophy-float">
               <img
-                src="https://upload.wikimedia.org/wikipedia/commons/thumb/2/2e/FIFA_World_Cup_Trophy_2010.jpg/800px-FIFA_World_Cup_Trophy_2010.jpg"
+                src="/images/trophy.png"
                 alt="FIFA World Cup Trophy"
                 className="w-48 h-72 md:w-64 md:h-96 object-cover rounded-2xl border border-[#FFD700]/40 shadow-2xl animate-trophy-pulse"
                 style={{

@@ -230,7 +230,7 @@ export default function Home() {
             <div className="flex items-center space-x-3 group cursor-pointer">
               {/* Official FIFA 2026 emblem SVG replaces legacy Trophy icon */}
               <img
-                src="https://upload.wikimedia.org/wikipedia/en/d/d0/2026_FIFA_World_Cup_emblem.svg"
+                src="/images/emblem.svg"
                 alt="FIFA World Cup 2026 Emblem"
                 className="h-8 w-auto object-contain"
               />
@@ -271,7 +271,7 @@ export default function Home() {
               style={{
                 scale: heroBgScale,
                 opacity: heroBgOpacity,
-                backgroundImage: `url('https://upload.wikimedia.org/wikipedia/commons/thumb/4/47/MetLife_Stadium_aerial.jpg/1280px-MetLife_Stadium_aerial.jpg')`,
+                backgroundImage: `url('/images/metlife.png')`,
               }}
               className="w-full h-full bg-cover bg-center"
             />
