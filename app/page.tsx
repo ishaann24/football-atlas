@@ -1,504 +1,827 @@
 'use client';
-
-import React, { useState, useEffect, useRef, useMemo } from 'react';
-import dynamic from 'next/dynamic';
+import React, { useState, useEffect, useRef } from 'react';
 import rawMatches from '@/data/matches.json';
-import TimezoneSelector from '@/components/TimezoneSelector';
-import MatchCard from '@/components/MatchCard';
+import { FINAL_STANDINGS } from '@/lib/static-standings';
 import RegisterForm from '@/components/RegisterForm';
-import Countdown from '@/components/Countdown';
-import WorldMap from '@/components/WorldMap';
-import RoadToGlory from '@/components/RoadToGlory';
-import TrophyShowcase from '@/components/TrophyShowcase';
-import LenisProvider from '@/components/LenisProvider';
-import { motion, useScroll, useSpring, useTransform } from 'framer-motion';
-import { Search, Trophy, Calendar, ChevronDown, ChevronRight, Activity, Globe, Sparkles } from 'lucide-react';
+import NewsStrip from '@/components/NewsStrip';
+import FanPoll from '@/components/FanPoll';
 
-// Bypassing Server-Side Rendering (SSR) for browser-only Three.js WebGL canvas
-const WorldCupScene = dynamic(() => import('@/components/three/WorldCupScene'), {
-  ssr: false,
-  loading: () => (
-    <div className="absolute inset-0 bg-slate-950 flex flex-col items-center justify-center space-y-4">
-      <div className="w-12 h-12 rounded-full border-4 border-emerald-500 border-t-transparent animate-spin" />
-      <span className="text-xs text-emerald-400 font-bold uppercase tracking-widest animate-pulse">
-        Initializing 3D Stadium...
-      </span>
-    </div>
-  ),
-});
-
-const TEAM_FLAGS = [
-  { flag: '🇦🇷', name: 'Argentina' },
-  { flag: '🇧🇷', name: 'Brazil' },
-  { flag: '🇫🇷', name: 'France' },
-  { flag: '🏴󠁧󠁢󠁥󠁮󠁧󠁿', name: 'England' },
-  { flag: '🇺🇸', name: 'USA' },
-  { flag: '🇲🇽', name: 'Mexico' },
-  { flag: '🇨🇦', name: 'Canada' },
-  { flag: '🇩🇪', name: 'Germany' },
-];
-
-// IntersectionObserver helper for scroll-triggered fade-ins
-function ScrollFadeIn({ children }: { children: React.ReactNode }) {
+function useFadeIn(threshold = 0.15) {
   const ref = useRef<HTMLDivElement>(null);
-  const [isVisible, setIsVisible] = useState(false);
-
+  const [visible, setVisible] = useState(false);
   useEffect(() => {
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setIsVisible(true);
-          observer.unobserve(entry.target); // trigger animation only once
-        }
-      },
-      { threshold: 0.1 }
+    const el = ref.current; if (!el) return;
+    const obs = new IntersectionObserver(
+      ([e]) => { if (e.isIntersecting) { setVisible(true); obs.disconnect(); } },
+      { threshold }
     );
+    obs.observe(el); return () => obs.disconnect();
+  }, [threshold]);
+  return { ref, visible };
+}
 
-    if (ref.current) {
-      observer.observe(ref.current);
-    }
-    return () => observer.disconnect();
-  }, []);
-
+function FadeSection({ children, delay = 0, className = '' }: { children: React.ReactNode; delay?: number; className?: string; }) {
+  const { ref, visible } = useFadeIn();
   return (
-    <div
-      ref={ref}
-      className={`transition-all duration-1000 ease-out transform ${
-        isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
-      }`}
-    >
+    <div ref={ref} className={className} style={{ opacity: visible ? 1 : 0, transform: visible ? 'translateY(0)' : 'translateY(36px)', transition: `opacity 0.75s ease ${delay}ms, transform 0.75s ease ${delay}ms` }}>
       {children}
     </div>
   );
 }
 
-export default function Home() {
-  const [selectedTimezone, setSelectedTimezone] = useState('Asia/Kolkata'); // Default to IST
-  const [searchTerm, setSearchTerm] = useState('');
-  const [selectedTeam, setSelectedTeam] = useState('All');
-  const [selectedStage, setSelectedStage] = useState('All');
+function Countdown() {
+  const [status, setStatus] = useState<'loading' | 'pre' | 'live' | 'post'>('post');
+  const [time, setTime] = useState({ d: '00', h: '00', m: '00', s: '00' });
 
-  // Track absolute window scroll coordinate
-  const { scrollY, scrollYProgress } = useScroll();
+  useEffect(() => {
+    const target = new Date('2026-06-11T19:00:00Z').getTime();
+    const finalDate = new Date('2026-07-19T23:59:59Z').getTime();
 
-  // Apply spring damping to smooth out scroll coordinates for UI transforms
-  const smoothScrollProgress = useSpring(scrollYProgress, {
-    stiffness: 80,
-    damping: 20,
-    restDelta: 0.001,
-  });
-
-  const matches = useMemo(() => rawMatches, []);
-
-  // Unique team list for filter
-  const uniqueTeams = useMemo(() => {
-    const teamsSet = new Set<string>();
-    matches.forEach((m) => {
-      const isPlaceholder = (t: string) =>
-        t.includes('Winner') || t.includes('Runner-up') || t.includes('Loser') || t === 'TBD';
-
-      if (!isPlaceholder(m.homeTeam)) teamsSet.add(m.homeTeam);
-      if (!isPlaceholder(m.awayTeam)) teamsSet.add(m.awayTeam);
-    });
-    return Array.from(teamsSet).sort();
-  }, [matches]);
-
-  // Filtering engine
-  const filteredMatches = useMemo(() => {
-    return matches.filter((match) => {
-      const matchesTeam =
-        selectedTeam === 'All' ||
-        match.homeTeam.toLowerCase() === selectedTeam.toLowerCase() ||
-        match.awayTeam.toLowerCase() === selectedTeam.toLowerCase();
-
-      const matchesSearch =
-        searchTerm === '' ||
-        match.homeTeam.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        match.awayTeam.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        match.venue.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        match.group.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        match.stage.toLowerCase().includes(searchTerm.toLowerCase());
-
-      let matchesStage = true;
-      if (selectedStage !== 'All') {
-        if (selectedStage === 'Group Stage') {
-          matchesStage = match.stage === 'Group Stage';
-        } else if (selectedStage === 'Knockouts') {
-          matchesStage = match.stage !== 'Group Stage';
-        }
+    const tick = () => {
+      const now = Date.now();
+      if (now < target) {
+        setStatus('pre');
+        const diff = Math.max(0, target - now);
+        const p = (n: number) => String(n).padStart(2, '0');
+        setTime({
+          d: p(Math.floor(diff / 86400000)),
+          h: p(Math.floor((diff % 86400000) / 3600000)),
+          m: p(Math.floor((diff % 3600000) / 60000)),
+          s: p(Math.floor((diff % 60000) / 1000))
+        });
+      } else if (now >= target && now <= finalDate) {
+        setStatus('live');
+      } else {
+        setStatus('post');
       }
+    };
 
-      return matchesTeam && matchesSearch && matchesStage;
-    });
-  }, [matches, selectedTeam, searchTerm, selectedStage]);
+    tick();
+    const id = setInterval(tick, 1000);
+    return () => clearInterval(id);
+  }, []);
 
-  // Parallax zoom for MetLife Stadium background
-  const heroBgScale = useTransform(smoothScrollProgress, [0, 0.3], [1, 1.15]);
-  const heroBgOpacity = useTransform(smoothScrollProgress, [0.15, 0.32], [1, 0]);
+  if (status === 'loading') {
+    return (
+      <div style={{ height: 60, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'rgba(255,255,255,0.4)', fontSize: 13 }}>
+        Loading...
+      </div>
+    );
+  }
 
-  // Text reveals based on scroll progress
-  const heroTextOpacity = useTransform(smoothScrollProgress, [0, 0.25], [1, 0]);
-  const heroTextY = useTransform(smoothScrollProgress, [0, 0.25], [0, -85]);
+  if (status === 'live') {
+    return (
+      <div style={{
+        display: 'inline-flex',
+        alignItems: 'center',
+        gap: 12,
+        background: 'rgba(230, 29, 37, 0.08)',
+        border: '1px solid rgba(230, 29, 37, 0.3)',
+        borderRadius: '50px',
+        padding: '10px 24px',
+        boxShadow: '0 8px 32px rgba(230, 29, 37, 0.15)',
+        backdropFilter: 'blur(8px)',
+        animation: 'pulse-glow 2s infinite ease-in-out'
+      }}>
+        <span style={{
+          width: 10,
+          height: 10,
+          borderRadius: '50%',
+          background: '#E61D25',
+          boxShadow: '0 0 10px #E61D25',
+          animation: 'pdot 1.2s infinite'
+        }} />
+        <span style={{
+          fontFamily: "'Bebas Neue', sans-serif",
+          fontSize: 22,
+          color: '#fff',
+          letterSpacing: 2,
+          textTransform: 'uppercase'
+        }}>
+          Tournament Live
+        </span>
+      </div>
+    );
+  }
 
-  const lightsTextOpacity = useTransform(smoothScrollProgress, [0.18, 0.35, 0.48], [0, 1, 0]);
-  const lightsTextY = useTransform(smoothScrollProgress, [0.18, 0.35, 0.48], [50, 0, -50]);
-
-  const trophyTextOpacity = useTransform(smoothScrollProgress, [0.42, 0.58, 0.72], [0, 1, 0]);
-  const trophyTextY = useTransform(smoothScrollProgress, [0.42, 0.58, 0.72], [50, 0, -50]);
-
-  // Football scroll animation values
-  const ballY = useTransform(scrollY, (y) => y * 0.3);
-  const ballRotate = useTransform(scrollY, (y) => y * 0.5);
-  const ballOpacity = useTransform(scrollYProgress, [0.88, 0.95], [1, 0]);
-
-  const [isKicked, setIsKicked] = useState(false);
-  const handleBallClick = () => {
-    if (isKicked) return;
-    setIsKicked(true);
-    setTimeout(() => setIsKicked(false), 600);
-  };
+  if (status === 'post') {
+    return (
+      <div style={{
+        display: 'inline-flex',
+        alignItems: 'center',
+        gap: 12,
+        background: 'linear-gradient(135deg, rgba(255, 215, 0, 0.1) 0%, rgba(255, 215, 0, 0.02) 100%)',
+        border: '1px solid rgba(255, 215, 0, 0.35)',
+        borderRadius: '16px',
+        padding: '16px 28px',
+        boxShadow: '0 8px 32px rgba(255, 215, 0, 0.1)',
+        backdropFilter: 'blur(8px)'
+      }}>
+        <span style={{ fontSize: 24 }}>🏆</span>
+        <div style={{ textAlign: 'left' }}>
+          <div style={{
+            fontFamily: "'Bebas Neue', sans-serif",
+            fontSize: 24,
+            color: '#FFD700',
+            letterSpacing: 1.5,
+            lineHeight: 1
+          }}>
+            Tournament Complete
+          </div>
+          <div style={{
+            fontSize: 11,
+            color: 'rgba(255, 255, 255, 0.5)',
+            marginTop: 4,
+            fontWeight: 500
+          }}>
+            Spain are World Champions 2026
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <LenisProvider>
-      <div className="relative min-h-[500vh] bg-[#020617] text-slate-100 selection:bg-emerald-500 selection:text-slate-900 overflow-x-hidden">
-        
-        {/* Fixed Background 3D WebGL Canvas mapping camera paths to page scrolls */}
-        <div className="fixed inset-0 w-screen h-screen z-0 pointer-events-none">
-          <WorldCupScene />
+    <div style={{ display: 'flex', gap: 12, justifyContent: 'center' }}>
+      {[{ val: time.d, label: 'Days' }, { val: time.h, label: 'Hours' }, { val: time.m, label: 'Mins' }, { val: time.s, label: 'Secs' }].map(({ val, label }) => (
+        <div key={label} style={{ textAlign: 'center' }}>
+          <div style={{
+            fontFamily: "'Bebas Neue', sans-serif",
+            fontSize: 'clamp(36px,8vw,52px)',
+            color: '#fff',
+            lineHeight: 1,
+            background: 'rgba(255,255,255,0.07)',
+            border: '1px solid rgba(255,255,255,0.1)',
+            borderRadius: 8,
+            padding: '8px 14px',
+            minWidth: 64,
+            display: 'block'
+          }}>{val}</div>
+          <div style={{ fontSize: 9, color: 'rgba(255,255,255,0.35)', letterSpacing: 3, textTransform: 'uppercase' as const, marginTop: 6 }}>{label}</div>
         </div>
+      ))}
+    </div>
+  );
+}
 
-        {/* Floating Football Scroll Parallax Wrapper */}
-        <motion.div
-          style={{
-            y: ballY,
-            opacity: ballOpacity,
-            top: '15%',
-          }}
-          className="fixed right-6 z-40 w-9 h-9 md:w-[52px] md:h-[52px] pointer-events-auto select-none"
-        >
-          {/* Inner animation container handles rotation + kick effect */}
-          <motion.div
-            onClick={handleBallClick}
-            style={{ rotate: ballRotate }}
-            animate={isKicked ? { x: -60, y: -20, rotate: 360, scale: 0.8 } : { x: 0, y: 0, scale: 1 }}
-            transition={{ duration: 0.6, ease: [0.175, 0.885, 0.32, 1.275] }}
-            className="w-full h-full cursor-pointer"
-          >
-            {/* Realistic Detailed SVG Football */}
-            <svg viewBox="0 0 100 100" className="w-full h-full drop-shadow-[0_8px_16px_rgba(0,0,0,0.5)]">
-              <defs>
-                <radialGradient id="ball-shading" cx="30%" cy="30%" r="70%">
-                  <stop offset="0%" stopColor="#ffffff" />
-                  <stop offset="60%" stopColor="#f1f5f9" />
-                  <stop offset="100%" stopColor="#94a3b8" />
-                </radialGradient>
-              </defs>
-              {/* White base sphere */}
-              <circle cx="50" cy="50" r="47" fill="url(#ball-shading)" stroke="#0f172a" strokeWidth="2" />
-              
-              {/* Pentagonal center panel */}
-              <polygon points="50,38 61,46 57,59 43,59 39,46" fill="#0f172a" />
-              
-              {/* Seam lines radiating from center */}
-              <line x1="50" y1="38" x2="50" y2="20" stroke="#0f172a" strokeWidth="2" />
-              <line x1="61" y1="46" x2="77" y2="42" stroke="#0f172a" strokeWidth="2" />
-              <line x1="57" y1="59" x2="68" y2="74" stroke="#0f172a" strokeWidth="2" />
-              <line x1="43" y1="59" x2="32" y2="74" stroke="#0f172a" strokeWidth="2" />
-              <line x1="39" y1="46" x2="23" y2="42" stroke="#0f172a" strokeWidth="2" />
-              
-              {/* Outer edge pentagonal panels */}
-              <polygon points="50,20 37,15 39,3 50,0 61,3 63,15" fill="#0f172a" />
-              <polygon points="77,42 87,31 96,37 97,49 89,56 78,52" fill="#0f172a" />
-              <polygon points="68,74 65,87 74,96 85,92 84,79 74,72" fill="#0f172a" />
-              <polygon points="32,74 35,87 26,96 15,92 16,79 26,72" fill="#0f172a" />
-              <polygon points="23,42 13,31 4,37 3,49 11,56 22,52" fill="#0f172a" />
-              
-              {/* Outer boundary connecting seams */}
-              <line x1="37" y1="15" x2="39" y2="46" stroke="#0f172a" strokeWidth="2" />
-              <line x1="63" y1="15" x2="61" y2="46" stroke="#0f172a" strokeWidth="2" />
-              <line x1="78" y1="52" x2="57" y2="59" stroke="#0f172a" strokeWidth="2" />
-              <line x1="74" y1="72" x2="68" y2="74" stroke="#0f172a" strokeWidth="2" />
-              <line x1="26" y1="72" x2="32" y2="74" stroke="#0f172a" strokeWidth="2" />
-              <line x1="22" y1="52" x2="43" y2="59" stroke="#0f172a" strokeWidth="2" />
-            </svg>
-          </motion.div>
-        </motion.div>
+function getDaysDisplay() {
+  const now = Date.now();
+  const kickoff = new Date('2026-06-11T19:00:00Z').getTime();
+  const finalDate = new Date('2026-07-19T23:59:59Z').getTime();
 
-        {/* Global sticky header */}
-        <header className="fixed top-0 left-0 right-0 border-b border-slate-900/60 bg-slate-950/70 backdrop-blur-xl z-50">
-          <div className="max-w-7xl mx-auto px-4 md:px-8 py-3.5 flex flex-col md:flex-row items-center justify-between gap-4">
-            <div className="flex items-center space-x-3 group cursor-pointer">
-              {/* Official FIFA 2026 emblem SVG replaces legacy Trophy icon */}
-              <img
-                src="/images/emblem.svg"
-                alt="FIFA World Cup 2026 Emblem"
-                className="h-8 w-auto object-contain"
-              />
-              <div>
-                <h1 className="text-lg font-black text-white tracking-tight uppercase leading-none">
-                  FIFA World Cup <span className="text-[#FFD700]">2026</span>
-                </h1>
-                <p className="text-[9px] text-[#FFD700] font-black uppercase tracking-widest leading-none mt-1">
-                  Official Fan Hub
-                </p>
+  if (now < kickoff) {
+    const diff = kickoff - now;
+    const days = Math.ceil(diff / 86400000);
+    return { n: `${days}`, l: days === 1 ? 'Day Left' : 'Days' };
+  } else if (now >= kickoff && now <= finalDate) {
+    const diff = now - kickoff;
+    const dayOfTournament = Math.floor(diff / 86400000) + 1;
+    return { n: `Day ${dayOfTournament}`, l: 'of 39' };
+  } else {
+    return { n: 'Ended', l: 'Tournament' };
+  }
+}
+
+
+function TodaysMatches() {
+  return (
+    <section id="matches-section" style={{background:'#080808',padding:'40px 24px'}}>
+      <div style={{maxWidth:'1100px',margin:'0 auto'}}>
+        <div style={{
+          background:'rgba(255,255,255,0.03)',
+          border:'1px solid rgba(255,255,255,0.07)',
+          borderRadius:10, padding:'24px',
+          textAlign:'center'
+        }}>
+          <div style={{fontSize:28, marginBottom:8}}>🏆</div>
+          <div style={{
+            fontFamily:"'Bebas Neue',sans-serif",
+            fontSize:22, color:'#FFD700', letterSpacing:2,
+            marginBottom:6
+          }}>
+            Tournament Complete
+          </div>
+          <div style={{fontSize:13,
+            color:'rgba(255,255,255,0.4)',
+            lineHeight:1.7}}>
+            Spain won the 2026 FIFA World Cup · 
+            104 matches played · 
+            June 11 - July 19
+          </div>
+          <a href="/schedule" style={{
+            display:'inline-block', marginTop:16,
+            background:'rgba(60,172,59,0.1)',
+            border:'1px solid rgba(60,172,59,0.3)',
+            color:'#3CAC3B', borderRadius:6,
+            padding:'10px 20px', fontSize:12,
+            fontWeight:700, textDecoration:'none',
+            letterSpacing:1
+          }}>
+            📅 View All Results →
+          </a>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function GroupStandings() {
+  const groups = ['A','B','C','D','E','F','G','H','I','J','K','L'];
+  const [activeGroup, setActiveGroup] = useState('A');
+  const table = FINAL_STANDINGS[activeGroup as keyof typeof FINAL_STANDINGS] || [];
+
+  return (
+    <section style={{background:'#0d0d0d',padding:'60px 24px'}}>
+      <div style={{maxWidth:'1100px',margin:'0 auto'}}>
+        <FadeSection>
+          <div style={{display:'flex',alignItems:'flex-start',
+            justifyContent:'space-between',
+            flexWrap:'wrap',gap:12,marginBottom:24}}>
+            <div>
+              <div style={{fontFamily:"'Bebas Neue',sans-serif",
+                fontSize:'clamp(28px,5vw,42px)',color:'#fff',
+                letterSpacing:2}}>
+                Group <span style={{color:'#3CAC3B'}}>Standings</span>
+              </div>
+              <div style={{fontSize:11,
+                color:'rgba(255,255,255,0.3)',
+                letterSpacing:1,marginTop:2}}>
+                Final Group Stage Standings
               </div>
             </div>
-
-            <div className="w-full md:w-auto">
-              <TimezoneSelector
-                selectedTimezone={selectedTimezone}
-                onTimezoneChange={setSelectedTimezone}
-              />
-            </div>
+            <a href="/schedule" style={{fontSize:12,
+              color:'rgba(255,255,255,0.3)',
+              textDecoration:'none',letterSpacing:1,
+              marginTop:8}}>
+              Full schedule →
+            </a>
           </div>
-        </header>
+        </FadeSection>
 
-        {/* ========================================================================= */}
-        {/* SCROLL STORY SECTIONS */}
-        {/* ========================================================================= */}
-
-        {/* FIX 2: CINEMATIC HERO — METLIFE SCROLL ZOOM (ScrollHeight: 100vh) */}
-        <section className="relative h-screen w-full flex flex-col items-center justify-center text-center px-4 z-10 select-none overflow-hidden bg-black">
-          
-          {/* Zooming background container */}
-          <motion.div
-            initial={{ scale: 0.95, opacity: 0 }}
-            animate={{ scale: 1.0, opacity: 1 }}
-            transition={{ duration: 1.2, ease: 'easeOut' }}
-            className="absolute inset-0 w-full h-full overflow-hidden"
-          >
-            <motion.div
+        {/* Group tabs */}
+        <div style={{display:'flex',gap:6,
+          flexWrap:'wrap',marginBottom:16}}>
+          {groups.map((g) => (
+            <button key={g} onClick={() => setActiveGroup(g)}
               style={{
-                scale: heroBgScale,
-                opacity: heroBgOpacity,
-                backgroundImage: `url('/images/metlife.png')`,
-              }}
-              className="w-full h-full bg-cover bg-center"
-            />
-          </motion.div>
+                background: activeGroup===g 
+                  ? '#3CAC3B' : 'rgba(255,255,255,0.05)',
+                border:`1px solid ${activeGroup===g 
+                  ? '#3CAC3B' : 'rgba(255,255,255,0.08)'}`,
+                color: activeGroup===g 
+                  ? '#fff' : 'rgba(255,255,255,0.4)',
+                fontFamily:"'Bebas Neue',sans-serif",
+                fontSize:16,letterSpacing:2,
+                padding:'5px 14px',borderRadius:4,
+                cursor:'pointer',transition:'all 0.15s'
+              }}>
+              {g}
+            </button>
+          ))}
+        </div>
 
-          {/* Dark Overlay Gradient (bottom 60% -> black) */}
-          <div className="absolute inset-0 bg-gradient-to-t from-[#020617] via-[#020617]/70 to-[#020617]/10 pointer-events-none z-10" />
+        {/* Table */}
+        <div style={{background:'#111',
+          border:'1px solid rgba(255,255,255,0.07)',
+          borderRadius:8,overflow:'hidden'}}>
+          <div style={{display:'grid',
+            gridTemplateColumns:'28px 1fr 32px 32px 32px 32px 36px 44px',
+            padding:'10px 16px',
+            background:'rgba(255,255,255,0.04)',
+            borderBottom:'1px solid rgba(255,255,255,0.07)',
+            fontSize:10,fontWeight:700,
+            color:'rgba(255,255,255,0.3)',
+            letterSpacing:1,textTransform:'uppercase' as const,
+            gap:4}}>
+            <span>#</span>
+            <span>Team</span>
+            <span style={{textAlign:'center' as const}}>P</span>
+            <span style={{textAlign:'center' as const}}>W</span>
+            <span style={{textAlign:'center' as const}}>D</span>
+            <span style={{textAlign:'center' as const}}>L</span>
+            <span style={{textAlign:'center' as const}}>GD</span>
+            <span style={{textAlign:'center' as const,
+              color:'#3CAC3B'}}>PTS</span>
+          </div>
 
-          {/* Fade-out Hero Text content */}
-          <motion.div 
-            style={{ opacity: heroTextOpacity, y: heroTextY }} 
-            className="space-y-6 max-w-4xl z-20"
-          >
-            <div className="inline-flex items-center space-x-2 bg-slate-950/80 border border-slate-900 rounded-full px-4 py-1.5 text-xs text-slate-400 font-bold tracking-widest uppercase shadow-xl">
-              <Globe className="w-4 h-4 text-[#FFD700] animate-spin" style={{ animationDuration: '8s' }} />
-              <span>MetLife Arena Opening Kickoff</span>
-            </div>
-            
-            <h1 className="text-5xl md:text-8xl font-black text-white uppercase tracking-tighter leading-none">
-              UNITED <span className="text-transparent bg-clip-text bg-gradient-to-r from-yellow-100 via-[#FFD700] to-amber-500">2026</span>
-            </h1>
-            
-            <p className="text-slate-300 font-mono text-xs md:text-sm uppercase tracking-widest max-w-md mx-auto leading-relaxed">
-              48 Nations. 104 Matches. One Champion.
-            </p>
-          </motion.div>
-
-          {/* Bouncing Scroll Indicator */}
-          <motion.div 
-            style={{ opacity: heroTextOpacity }}
-            className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center space-y-1.5 z-20 pointer-events-none"
-          >
-            <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest leading-none">
-              Scroll to Explore
-            </span>
-            <div className="w-5 h-5 flex items-center justify-center rounded-full bg-slate-950/60 border border-slate-900 animate-bounce">
-              <ChevronDown className="w-3.5 h-3.5 text-[#FFD700]" />
-            </div>
-          </motion.div>
-        </section>
-
-        {/* SECTION 2: Floodlights Reveal (ScrollHeight: 100vh) */}
-        <section className="relative h-screen w-full flex items-center justify-center text-center px-4 z-10 pointer-events-none">
-          <motion.div style={{ opacity: lightsTextOpacity, y: lightsTextY }} className="space-y-4 max-w-2xl">
-            <h2 className="text-4xl md:text-6xl font-black text-white uppercase tracking-tight leading-tight">
-              Spotlights Activated.
-            </h2>
-            <p className="text-slate-400 text-xs md:text-sm leading-relaxed max-w-md mx-auto">
-              Step onto the pitch. Volumetric spotlights illuminate the grand arena as the crowd roars.
-            </p>
-          </motion.div>
-        </section>
-
-        {/* SECTION 3: Golden Trophy Focus (ScrollHeight: 100vh) */}
-        <section className="relative h-screen w-full flex items-center justify-center text-center px-4 z-10 pointer-events-none">
-          <motion.div style={{ opacity: trophyTextOpacity, y: trophyTextY }} className="space-y-4 max-w-xl">
-            <h2 className="text-4xl md:text-6xl font-black text-white uppercase tracking-tight leading-tight">
-              The Ultimate Glory.
-            </h2>
-            <p className="text-slate-400 text-xs md:text-sm leading-relaxed">
-              Hover your cursor to reflect the lights off the gold. Built in high-performance WebGL.
-            </p>
-          </motion.div>
-        </section>
-
-        {/* SECTION 4: Floating Team Cards & Countdown (ScrollHeight: 100vh) */}
-        <section className="relative min-h-screen w-full flex flex-col justify-center py-20 px-4 max-w-7xl mx-auto z-10">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
-            
-            {/* Left Column: Live Ticker */}
-            <div className="lg:col-span-6 space-y-6 text-center lg:text-left">
-              <span className="inline-flex items-center space-x-2 bg-amber-950/30 border border-[#FFD700]/25 rounded-full px-3.5 py-1 text-xs text-[#FFD700] font-bold uppercase tracking-wide">
-                <Sparkles className="w-3.5 h-3.5 animate-pulse" />
-                <span>Campaign Countdown</span>
+          {table.map((row, i) => (
+            <div key={row.team} style={{display:'grid',
+              gridTemplateColumns:'28px 1fr 32px 32px 32px 32px 36px 44px',
+              padding:'12px 16px',gap:4,
+              borderBottom:i<table.length-1
+                ?'1px solid rgba(255,255,255,0.04)':'none',
+              background:row.qualified
+                ?'rgba(60,172,59,0.06)':'transparent',
+              alignItems:'center'}}>
+              <span style={{fontSize:13,fontWeight:700,
+                color:row.qualified?'#3CAC3B':'rgba(255,255,255,0.3)'}}>
+                {i + 1}
               </span>
-              <h2 className="text-4xl md:text-6xl font-black text-white uppercase tracking-tight leading-none">
-                The Clock <br />
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-yellow-100 via-[#FFD700] to-yellow-500">Is Ticking.</span>
-              </h2>
-              <p className="text-xs text-slate-400 leading-relaxed max-w-md">
-                Days away from the historic opening kickoff. Register for goal alerts below to follow every match event instantly.
-              </p>
-              <div className="pt-2">
-                <Countdown />
+              <div style={{display:'flex',
+                alignItems:'center',gap:8}}>
+                <img src={`https://flagcdn.com/w40/${row.flag}.png`} 
+                  alt={row.team}
+                  style={{width:22,height:15,
+                    objectFit:'cover',borderRadius:2}}
+                  onError={(e)=>{
+                    (e.target as HTMLImageElement).style.display='none'
+                  }}/>
+                <span style={{fontSize:13,fontWeight:600,
+                  color:'#fff'}}>
+                  {row.team}
+                </span>
+              </div>
+              <span style={{textAlign:'center',fontSize:13,color:'rgba(255,255,255,0.5)'}}>{row.p}</span>
+              <span style={{textAlign:'center',fontSize:13,color:'rgba(255,255,255,0.5)'}}>{row.w}</span>
+              <span style={{textAlign:'center',fontSize:13,color:'rgba(255,255,255,0.5)'}}>{row.d}</span>
+              <span style={{textAlign:'center',fontSize:13,color:'rgba(255,255,255,0.5)'}}>{row.l}</span>
+              <span style={{textAlign:'center',fontSize:13,color:'rgba(255,255,255,0.5)'}}>
+                {row.gd > 0 ? `+${row.gd}` : row.gd}
+              </span>
+              <span style={{textAlign:'center',fontSize:13,color:'#fff',fontWeight:700}}>{row.pts}</span>
+            </div>
+          ))}
+        </div>
+
+        <div style={{marginTop:10,fontSize:11,
+          color:'rgba(255,255,255,0.2)',textAlign:'center' as const,
+          letterSpacing:0.5}}>
+          ✅ Top 2 per group + best 3rd-place teams advanced
+          <span style={{color:'#3CAC3B'}}> · Green = qualified</span>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+
+
+export default function Home() {
+  const [heroOffset, setHeroOffset] = useState(0);
+  const [showToast, setShowToast] = useState(false);
+  const pageRef = useRef<HTMLDivElement>(null);
+
+  const dayInfo = getDaysDisplay();
+
+  const footballSVG = '<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32"><circle cx="16" cy="16" r="15" fill="white" stroke="%23222" stroke-width="1.5"/><polygon points="16,4 20,10 16,14 12,10" fill="%23111"/><polygon points="26,11 28,17 23,19 21,13" fill="%23111"/><polygon points="24,24 19,27 16,22 20,18" fill="%23111"/><polygon points="8,24 6,18 11,16 13,22" fill="%23111"/><polygon points="6,11 11,8 13,14 8,16" fill="%23111"/></svg>';
+  const cursorUrl = `data:image/svg+xml,${footballSVG}`;
+
+  const handleWhatsAppComingSoon = () => { setShowToast(true); setTimeout(() => setShowToast(false), 3500); };
+
+  useEffect(() => {
+    const h = () => setHeroOffset(window.scrollY);
+    window.addEventListener('scroll', h, { passive: true });
+    return () => window.removeEventListener('scroll', h);
+  }, []);
+
+  const css = `
+    @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700&display=swap');
+    :root { --g:#3CAC3B; --b:#2A398D; --r:#E61D25; --gr:#474A4A; }
+    *{box-sizing:border-box;} body{margin:0;background:#080808;}
+    .wc-page{font-family:'Inter',sans-serif;background:#080808;color:#fff;overflow-x:hidden;}
+    .top-stripe{height:4px;background:linear-gradient(90deg,var(--g) 33%,var(--b) 33% 66%,var(--r) 66%);position:sticky;top:0;z-index:100;}
+    .wc-nav{position:sticky;top:4px;z-index:99;display:flex;align-items:center;justify-content:space-between;padding:12px 24px;background:rgba(8,8,8,0.92);backdrop-filter:blur(12px);border-bottom:1px solid rgba(255,255,255,0.05);}
+    .wc-logo{font-family:'Bebas Neue',sans-serif;font-size:22px;color:#fff;letter-spacing:3px;}
+    .wc-logo span{color:var(--g);}
+    .nav-pills{display:flex;gap:6px;flex-wrap:wrap;}
+    .np{font-size:10px;font-weight:700;padding:5px 12px;border-radius:3px;border:none;cursor:pointer;letter-spacing:1px;font-family:'Inter',sans-serif;text-transform:uppercase;}
+    .np-g{background:var(--g);color:#fff;} .np-b{background:var(--b);color:#fff;} .np-r{background:var(--r);color:#fff;}
+    .wc-hero{position:relative;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;overflow:hidden;}
+    .hero-bg{position:absolute;inset:0;background-size:cover;background-position:center top;will-change:transform;}
+    .hero-overlay{position:absolute;inset:0;background:linear-gradient(to bottom,rgba(8,8,8,0.25) 0%,rgba(8,8,8,0.6) 55%,rgba(8,8,8,1) 100%);}
+    .hero-content{position:relative;z-index:2;text-align:center;padding:40px 20px;}
+    .hero-eyebrow{font-size:10px;font-weight:700;letter-spacing:5px;color:rgba(255,255,255,0.4);text-transform:uppercase;margin-bottom:16px;}
+    .hero-eyebrow span{color:var(--g);}
+    .hero-title{font-family:'Bebas Neue',sans-serif;font-size:clamp(72px,15vw,120px);color:#fff;line-height:0.88;letter-spacing:3px;margin-bottom:12px;}
+    .hero-title .tc{color:var(--g);} .hero-title .rc{color:var(--r);}
+    .hero-dates{font-size:12px;color:rgba(255,255,255,0.4);letter-spacing:3px;text-transform:uppercase;margin-bottom:32px;}
+    @keyframes pdot{0%,100%{opacity:1;transform:scale(1);}50%{opacity:0.35;transform:scale(0.65);}}
+    .hero-ctas{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:24px;}
+    .cta-primary{background:var(--r);color:#fff;border:none;padding:14px 28px;border-radius:5px;font-size:12px;font-weight:700;cursor:pointer;letter-spacing:1.5px;text-transform:uppercase;font-family:'Inter',sans-serif;}
+    .cta-secondary{background:transparent;color:#fff;border:1px solid rgba(255,255,255,0.25);padding:14px 28px;border-radius:5px;font-size:12px;font-weight:600;cursor:pointer;letter-spacing:1px;text-transform:uppercase;font-family:'Inter',sans-serif;}
+    .hero-scroll{display:flex;flex-direction:column;align-items:center;gap:8px;margin-top:36px;opacity:0.35;}
+    .hero-scroll span{font-size:9px;letter-spacing:4px;color:#fff;text-transform:uppercase;}
+    .scroll-line{width:1px;height:36px;background:linear-gradient(to bottom,rgba(255,255,255,0),#fff);}
+    
+    .stats-bar{display:grid;grid-template-columns:repeat(4,1fr);}
+    .sb{padding:18px 10px;text-align:center;}
+    .sb-n{font-family:'Bebas Neue',sans-serif;font-size:32px;color:#fff;line-height:1;}
+    .sb-l{font-size:9px;color:rgba(255,255,255,0.65);letter-spacing:2px;text-transform:uppercase;margin-top:3px;}
+    .s-divider{height:1px;background:linear-gradient(90deg,transparent,rgba(255,255,255,0.06),transparent);}
+    
+    .s-tag{display:inline-flex;align-items:center;gap:8px;margin-bottom:20px;}
+    .s-tag-dot{width:8px;height:8px;border-radius:50%;}
+    .s-tag-text{font-size:10px;font-weight:700;letter-spacing:4px;color:rgba(255,255,255,0.4);text-transform:uppercase;}
+    .s-title{font-family:'Bebas Neue',sans-serif;font-size:clamp(40px,7vw,64px);color:#fff;letter-spacing:2px;line-height:0.92;margin-bottom:20px;}
+
+    /* Features section redesign */
+    .features-section {
+      background: #0d0d0d;
+      padding: 80px 24px;
+    }
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 20px;
+      max-width: 1200px;
+      margin: 0 auto 40px;
+    }
+    .feature-card {
+      background: #141414;
+      border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 12px;
+      padding: 24px;
+      transition: all 0.25s ease;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      position: relative;
+      overflow: hidden;
+      text-align: left;
+    }
+    .feature-card:hover {
+      transform: translateY(-4px);
+      border-color: rgba(255,255,255,0.12);
+      box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+    }
+    .feature-icon-wrapper {
+      width: 40px;
+      height: 40px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      margin-bottom: 4px;
+    }
+    .feature-card-title {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 18px;
+      letter-spacing: 1px;
+      margin: 0;
+      color: #fff;
+    }
+    .feature-card-desc {
+      font-size: 12px;
+      color: rgba(255,255,255,0.45);
+      line-height: 1.6;
+      margin: 0;
+      flex: 1;
+    }
+    .feature-card-tag {
+      position: absolute;
+      top: 16px;
+      right: 16px;
+      font-size: 9px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      padding: 3px 8px;
+      border-radius: 10px;
+      color: #fff;
+    }
+    
+
+    
+    .wc-footer{background:#050505;border-top:1px solid rgba(255,255,255,0.05);padding:28px 24px;text-align:center;}
+    .footer-logo{font-family:'Bebas Neue',sans-serif;font-size:20px;color:rgba(255,255,255,0.2);letter-spacing:3px;margin-bottom:8px;}
+    .footer-text{font-size:11px;color:rgba(255,255,255,0.2);line-height:1.6;}
+    
+    .footer-credit {
+      font-size: 16px;
+      color: rgba(255,255,255,0.5);  
+      margin-top: 16px;
+      letter-spacing: 0.5px;
+      font-weight: 600;
+    }
+    .footer-stripe {
+      display: flex;
+      justify-content: center;
+      gap: 6px;
+      margin: 10px 0;
+    }
+
+    .toast{position:fixed;bottom:28px;left:50%;transform:translateX(-50%) translateY(80px);background:#111;border:1px solid rgba(37,211,102,0.5);border-radius:10px;padding:14px 24px;display:flex;align-items:center;gap:10px;font-size:13px;font-weight:600;color:#fff;z-index:9999;transition:transform 0.4s cubic-bezier(.34,1.56,.64,1),opacity 0.4s ease;opacity:0;pointer-events:none;white-space:nowrap;box-shadow:0 8px 32px rgba(0,0,0,0.4);}
+    .toast.show{transform:translateX(-50%) translateY(0);opacity:1;}
+    .toast-icon{font-size:20px;}
+    @media(max-width:1024px) {
+      .features-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+    @media(max-width:640px){
+      .stats-bar{grid-template-columns:repeat(2,1fr);}
+      .features-grid {
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 8px !important;
+      }
+      .feature-card {
+        padding: 14px 12px !important;
+      }
+      .feature-icon-wrapper {
+        font-size: 22px !important;
+        margin-bottom: 8px !important;
+      }
+      .feature-card-title {
+        font-size: 14px !important;
+      }
+      .feature-card-desc {
+        font-size: 10px !important;
+        line-height: 1.4 !important;
+      }
+      .feature-card-tag {
+        font-size: 7px !important;
+        padding: 2px 6px !important;
+      }
+    }
+   
+  `;
+
+  return (
+    <>
+      <style dangerouslySetInnerHTML={{ __html: css }} />
+
+      {/* Toast notification */}
+      {showToast && (
+        <div className="toast show">
+          <span className="toast-icon">📲</span>
+          WhatsApp alerts coming soon — sign up to be first notified!
+        </div>
+      )}
+
+      <div className="wc-page" ref={pageRef}>
+        <div className="top-stripe" />
+
+        {/* Nav */}
+        <nav className="wc-nav">
+          <a href="/" style={{textDecoration:'none'}}>
+            <div className="wc-logo">WC<span>26</span></div>
+          </a>
+          <div className="nav-pills">
+            <a href="/schedule" style={{textDecoration:'none'}}>
+              <button className="np np-g">📅 Schedule</button>
+            </a>
+            <a href="/news" style={{textDecoration:'none'}}>
+              <button className="np" style={{
+                background:'rgba(234,179,8,0.15)',
+                color:'#EAB308',
+                border:'1px solid rgba(234,179,8,0.4)'
+              }}>
+                🗞️ News
+              </button>
+            </a>
+            <a href="/about" style={{textDecoration:'none'}}>
+              <button className="np np-r">🌍 About &amp; Facts</button>
+            </a>
+            <a href="/predict" style={{textDecoration:'none'}}>
+              <button className="np" style={{
+                background:'#2A398D',
+                color:'#fff',
+                border:'1px solid rgba(42,57,141,0.8)'
+              }}>
+                🎯 Predict
+              </button>
+            </a>
+            <a href="/alerts" style={{textDecoration:'none'}}>
+              <button className="np np-b">🔔 Get Alerts</button>
+            </a>
+          </div>
+        </nav>
+
+        {/* ── HERO ── */}
+        <section className="wc-hero">
+          <div className="hero-bg" style={{
+            backgroundImage: "url('/images/stadium-hero.jpg'), url('https://images.unsplash.com/photo-1574629810360-7efbbe195018?w=1600&q=80')",
+            transform: `scale(1.06) translateY(${heroOffset * 0.18}px)`,
+            opacity: Math.max(0, 0.32 - heroOffset * 0.0003),
+          }} />
+          <div className="hero-overlay" />
+          <div className="hero-content">
+            <div className="hero-eyebrow">The World&apos;s Greatest Stage 2026</div>
+            <div className="hero-title">FIFA<br /><span className="tc">WORLD</span><br />CUP <span className="rc">2026</span></div>
+            <div className="hero-dates">Spain 🏆 World Champions 2026</div>
+            <Countdown />
+            
+            <div style={{
+              display:'inline-flex', alignItems:'center',
+              gap:10, background:'rgba(255,215,0,0.08)',
+              border:'1px solid rgba(255,215,0,0.3)',
+              borderRadius:10, padding:'12px 20px',
+              marginTop:16
+            }}>
+              <span style={{fontSize:28}}>🏆</span>
+              <div style={{textAlign:'left'}}>
+                <div style={{
+                  fontFamily:"'Bebas Neue',sans-serif",
+                  fontSize:20, color:'#FFD700', letterSpacing:2
+                }}>
+                  Spain are World Champions!
+                </div>
+                <div style={{fontSize:11,
+                  color:'rgba(255,255,255,0.4)'}}>
+                  Spain 1-0 Argentina (AET) · July 19, 2026 · 
+                  MetLife Stadium
+                </div>
               </div>
             </div>
-
-            {/* Right Column: Floating Team Selection Grids */}
-            <div className="lg:col-span-6">
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                {TEAM_FLAGS.map((t, idx) => (
-                  <motion.button
-                    key={t.name}
-                    whileHover={{ scale: 1.05, y: -4 }}
-                    onClick={() => {
-                      setSelectedTeam(t.name);
-                      const scheduleEl = document.getElementById('schedules');
-                      if (scheduleEl) scheduleEl.scrollIntoView({ behavior: 'smooth' });
-                    }}
-                    className="bg-slate-950/80 border border-slate-900 hover:border-[#FFD700]/30 p-5 rounded-2xl flex flex-col items-center justify-center text-center shadow-xl backdrop-blur-md transition-colors"
-                  >
-                    <span className="text-3xl mb-2">{t.flag}</span>
-                    <span className="text-[10px] font-black text-slate-300 uppercase tracking-widest">{t.name}</span>
-                  </motion.button>
-                ))}
-              </div>
+            
+            <div className="hero-ctas">
+              <button className="cta-primary" onClick={() => document.getElementById('matches-section')?.scrollIntoView({ behavior: 'smooth' })}>
+                📅 &nbsp;View Schedule
+              </button>
+              <a href="/predict" style={{textDecoration:'none'}}>
+                <button className="cta-secondary">
+                  🎯 &nbsp;Predict Scores
+                </button>
+              </a>
+            </div>
+            <div className="hero-scroll" style={{ marginTop: 48 }}>
+              <span>Scroll to explore</span>
+              <div className="scroll-line" />
             </div>
           </div>
         </section>
 
-        {/* SECTION 5: Tournament Bracket, Stadium Map, and Fixtures Schedule */}
-        <div className="relative bg-gradient-to-b from-[#020617]/0 via-[#020617]/95 to-[#020617] pt-20 pb-12 z-10 space-y-24">
-          
-          {/* Fan Signup block */}
-          <ScrollFadeIn>
-            <div className="max-w-4xl mx-auto px-4 md:px-8">
-              <RegisterForm />
+        {/* Stats bar */}
+        <div className="stats-bar">
+          {[
+            { n: '104', l: 'Matches', bg: 'var(--g)' },
+            { n: '48', l: 'Teams', bg: 'var(--b)' },
+            { n: '16', l: 'Host Cities', bg: 'var(--r)' },
+            { n: '39', l: 'Days of Football', bg: 'var(--gr)' }
+          ].map(({ n, l, bg }) => (
+            <div key={l} className="sb" style={{ background: bg }}>
+              <div className="sb-n">{n}</div>
+              <div className="sb-l">{l}</div>
             </div>
-          </ScrollFadeIn>
-
-          {/* Interactive OSM map of Host Cities */}
-          <ScrollFadeIn>
-            <div className="max-w-7xl mx-auto px-4 md:px-8">
-              <WorldMap />
-            </div>
-          </ScrollFadeIn>
-
-          {/* Schedule Filter Feeds */}
-          <ScrollFadeIn>
-            <div id="schedules" className="max-w-7xl mx-auto px-4 md:px-8 scroll-mt-24">
-              <div className="flex items-center space-x-2.5 mb-8">
-                <div className="w-1.5 h-6 bg-[#FFD700] rounded-full" />
-                <h2 className="text-xl md:text-2xl font-black text-white uppercase tracking-wider">
-                  Match Schedules
-                </h2>
-              </div>
-
-              {/* Filter toolbar */}
-              <div className="bg-slate-950/60 border border-slate-900 p-4 rounded-2xl mb-8 flex flex-col md:flex-row gap-4 items-center justify-between shadow-2xl backdrop-blur-md">
-                <div className="relative w-full md:max-w-xs">
-                  <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
-                  <input
-                    type="text"
-                    placeholder="Search team, stadium, stage..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="w-full bg-slate-900/60 border border-slate-800 hover:border-slate-700 focus:border-[#FFD700]/60 text-white rounded-xl py-2.5 pl-10 pr-4 text-xs font-bold outline-none transition-colors"
-                  />
-                </div>
-
-                <div className="flex flex-wrap items-center gap-3 w-full md:w-auto">
-                  <select
-                    value={selectedTeam}
-                    onChange={(e) => setSelectedTeam(e.target.value)}
-                    className="bg-slate-900/60 border border-slate-800 hover:border-slate-700 text-slate-300 text-xs font-black rounded-xl py-2.5 px-4 outline-none focus:border-[#FFD700] cursor-pointer min-w-[140px]"
-                  >
-                    <option value="All">All Nations</option>
-                    {uniqueTeams.map((team) => (
-                      <option key={team} value={team}>
-                        {team}
-                      </option>
-                    ))}
-                  </select>
-
-                  <select
-                    value={selectedStage}
-                    onChange={(e) => setSelectedStage(e.target.value)}
-                    className="bg-slate-900/60 border border-slate-800 hover:border-slate-700 text-slate-300 text-xs font-black rounded-xl py-2.5 px-4 outline-none focus:border-[#FFD700] cursor-pointer min-w-[140px]"
-                  >
-                    <option value="All">All Stages</option>
-                    <option value="Group Stage">Group Stage</option>
-                    <option value="Knockouts">Knockout Phase</option>
-                  </select>
-
-                  {(searchTerm !== '' || selectedTeam !== 'All' || selectedStage !== 'All') && (
-                    <button
-                      onClick={() => {
-                        setSearchTerm('');
-                        setSelectedTeam('All');
-                        setSelectedStage('All');
-                      }}
-                      className="text-xs text-[#FFD700] font-bold hover:text-[#FFD700]/80 transition-colors py-2 px-3"
-                    >
-                      Clear Filters
-                    </button>
-                  )}
-                </div>
-              </div>
-
-              {/* Fixture cards grid */}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {filteredMatches.map((match) => (
-                  <MatchCard
-                    key={match.id}
-                    match={match}
-                    timezone={selectedTimezone}
-                  />
-                ))}
-              </div>
-            </div>
-          </ScrollFadeIn>
-
-          {/* FIX 4: Dedicated Trophy Showcase Section */}
-          <ScrollFadeIn>
-            <TrophyShowcase />
-          </ScrollFadeIn>
-
-          {/* Road to Glory bracket */}
-          <ScrollFadeIn>
-            <div className="max-w-7xl mx-auto px-4 md:px-8">
-              <RoadToGlory />
-            </div>
-          </ScrollFadeIn>
-
+          ))}
         </div>
+        <div className="s-divider" />
+
+        {/* Today's Matches */}
+        <TodaysMatches />
+        <div className="s-divider" />
+
+        {/* Fan Poll Section */}
+        <section style={{
+          background:'#0d0d0d',
+          padding:'60px 24px'
+        }}>
+          <div style={{
+            maxWidth:'1100px',
+            margin:'0 auto'
+          }}>
+            <FadeSection>
+              <FanPoll />
+            </FadeSection>
+          </div>
+        </section>
+        <div className="s-divider"/>
+
+        {/* Group Standings */}
+        <GroupStandings />
+        <div className="s-divider" />
+
+        {/* Golden Boot Teaser */}
+        <section style={{background:'#080808',
+          padding:'40px 24px'}}>
+          <div style={{
+            maxWidth:'1100px', margin:'0 auto',
+            display:'flex', alignItems:'center',
+            justifyContent:'space-between',
+            flexWrap:'wrap', gap:16
+          }}>
+            <div>
+              <div style={{
+                fontFamily:"'Bebas Neue',sans-serif",
+                fontSize:'clamp(24px,4vw,36px)',
+                color:'#fff', letterSpacing:2
+              }}>
+                Golden Boot{' '}
+                <span style={{color:'#FFD700'}}>Winner</span>
+              </div>
+              <div style={{fontSize:13,
+                color:'rgba(255,255,255,0.5)',marginTop:4}}>
+                🥇 Kylian Mbappé — 10 goals · 
+                First ever back-to-back Golden Boot winner
+              </div>
+            </div>
+            <a href="/about" style={{
+              display:'inline-flex',alignItems:'center',
+              gap:8,
+              background:'rgba(255,215,0,0.08)',
+              border:'1px solid rgba(255,215,0,0.25)',
+              borderRadius:6,padding:'12px 20px',
+              fontSize:12,fontWeight:700,
+              color:'#FFD700',textDecoration:'none',
+              letterSpacing:1,textTransform:'uppercase'
+            }}>
+              🏅 View Final Standings →
+            </a>
+          </div>
+        </section>
+        <div className="s-divider" />
+
+        {/* News Section */}
+        <NewsStrip />
+        <div className="s-divider" />
+
+        {/* Redesigned Features Grid Section */}
+        <section className="features-section">
+          <div style={{ maxWidth: '1200px', margin: '0 auto 32px', textAlign: 'center' }}>
+            <FadeSection>
+              <div style={{ fontSize: '11px', fontWeight: '700', letterSpacing: '3px', color: 'var(--g)', textTransform: 'uppercase', marginBottom: '12px' }}>
+                All-in-One Fan Hub
+              </div>
+              <h2 style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 'clamp(32px, 6vw, 56px)', letterSpacing: '2px', color: '#fff', margin: '0 0 40px' }}>
+                Features designed for <span style={{ color: 'var(--g)' }}>elite fans</span>
+              </h2>
+            </FadeSection>
+          </div>
+
+          <div className="features-grid">
+            {[
+              {
+                icon: '🎨',
+                title: 'Build Your Bracket',
+                desc: 'Create your own knockout stage predictions and share your bracket with friends.',
+                tag: 'Shareable',
+                tagBg: 'rgba(255,215,0,0.1)',
+                tagColor: '#FFD700',
+                borderColor: 'rgba(255,215,0,0.2)',
+                href: '/bracket'
+              },
+              { icon: '🔔', title: 'Goal Alerts', desc: 'Goal alerts were sent live during the tournament. Register to be first for future tournaments.', tag: 'Instant', tagBg: 'var(--r)' },
+              { icon: '🎯', title: 'Score Predictor', desc: 'Fans predicted all 104 matches during the tournament. Check the final leaderboard.', tag: 'Interactive', tagBg: 'var(--b)', href: '/leaderboard' },
+              { icon: '📊', title: 'Live Standings', desc: 'Full final group standings and knockout results from all 104 matches of WC 2026.', tag: 'Real-time', tagBg: 'var(--gr)' },
+              {
+                icon: '🏆',
+                title: 'Knockout Bracket',
+                desc: 'Full Road to Glory bracket from Round of 32 to the July 19 Final at MetLife Stadium.',
+                tag: 'Live Draw',
+                tagBg: 'rgba(255,215,0,0.1)',
+                tagColor: '#FFD700',
+                borderColor: 'rgba(255,215,0,0.2)',
+                href: '/schedule?view=bracket'
+              },
+              { icon: '🗳️', title: 'Fan Polls', desc: 'Cast votes on match favorites and view real-time global fan sentiment.', tag: 'Community', tagBg: 'var(--b)' },
+              { icon: '⭐', title: 'Match Ratings', desc: 'Rate fixtures 1-5 stars and discover community-highlighted classic matches.', tag: 'Feedback', tagBg: 'var(--r)' },
+              { icon: '🗞️', title: 'Latest News', desc: 'Aggregated news, injury reports, and expert tactical analyses.', tag: 'Updates', tagBg: 'var(--gr)' },
+            ].map((card: any, i) => (
+              <FadeSection key={card.title} delay={i * 80}>
+                <div 
+                  className="feature-card"
+                  onClick={card.title === 'Goal Alerts' ? handleWhatsAppComingSoon : (card.href ? () => window.location.href = card.href : undefined)}
+                  style={{ cursor: (card.title === 'Goal Alerts' || card.href) ? 'pointer' : 'default', borderColor: card.borderColor }}
+                >
+                  <span className="feature-card-tag" style={{ background: card.tagBg, color: card.tagColor || '#fff' }}>{card.tag}</span>
+                  <div className="feature-icon-wrapper" style={{ background: `${card.tagBg}15`, color: card.tagColor || card.tagBg }}>
+                    {card.icon}
+                  </div>
+                  <h3 className="feature-card-title">{card.title}</h3>
+                  <p className="feature-card-desc">{card.desc}</p>
+                </div>
+              </FadeSection>
+            ))}
+          </div>
+        </section>
 
         {/* Footer */}
-        <footer className="relative border-t border-slate-900/60 pt-8 text-center text-xs text-slate-500 z-10 bg-slate-950/40 pb-10">
-          <div className="max-w-7xl mx-auto px-4">
-            <p>© {new Date().getFullYear()} FIFA World Cup 2026 Fan Website. Powered by Next.js & WebGL.</p>
-            <p className="mt-2 text-[10px] text-slate-650 leading-relaxed max-w-md mx-auto">
-              The FIFA World Cup Trophy has been awarded since 1974. This is a fan site, not affiliated with FIFA.
-            </p>
+        <footer className="wc-footer">
+          <div className="footer-logo">WC 2026</div>
+          <div className="footer-stripe">
+            <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: 'var(--g)' }} />
+            <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: 'var(--b)' }} />
+            <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: 'var(--r)' }} />
           </div>
+          <div className="footer-text">Fan creation · Not affiliated with FIFA</div>
+          <div style={{marginTop:8}}>
+            <a href="/legal" style={{
+              fontSize:11,
+              color:'rgba(255,255,255,0.2)',
+              textDecoration:'none',
+              letterSpacing:0.5,
+              transition:'color 0.15s'
+            }}
+            onMouseEnter={e => 
+              (e.target as HTMLAnchorElement)
+                .style.color='rgba(255,255,255,0.5)'}
+            onMouseLeave={e => 
+              (e.target as HTMLAnchorElement)
+                .style.color='rgba(255,255,255,0.2)'}>
+              Privacy Policy · Terms of Use · Disclaimer
+            </a>
+            <div style={{
+              fontSize: 10,
+              color: 'rgba(255,255,255,0.2)',
+              marginTop: 6
+            }}>
+              Contact: ishaannnn24@gmail.com
+            </div>
+          </div>
+          <div className="footer-credit">Made with ❤️ by Ishan</div>
         </footer>
-
       </div>
-    </LenisProvider>
+    </>
   );
 }

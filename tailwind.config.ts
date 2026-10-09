@@ -11,6 +11,12 @@ const config: Config = {
       colors: {
         background: "var(--background)",
         foreground: "var(--foreground)",
+        fifa: {
+          green: "#3CAC3B",
+          blue: "#2A398D",
+          red: "#E61D25",
+          grey: "#474A4A",
+        },
       },
     },
   },

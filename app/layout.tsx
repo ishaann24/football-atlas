@@ -13,10 +13,10 @@ const geistMono = localFont({
   weight: "100 900",
 });
 
-export const metadata: Metadata = {
-  title: "FIFA World Cup 2026 Fan Hub | Schedule, Timezones & Goal Alerts",
-  description: "Track all 104 World Cup matches, convert fixtures to your local timezone, detect regional stream channels, and subscribe to real-time WhatsApp & Email goal alerts!",
-};
+export const metadata = {
+  title: 'FIFA World Cup 2026 | Predict · Standings · News · Goal Alerts',
+  description: 'Your complete FIFA World Cup 2026 fan hub. Predict match scores, track live group standings, get instant goal alerts, follow the Golden Boot race and read the latest news. Free forever.',
+}
 
 export default function RootLayout({
   children,

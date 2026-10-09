@@ -36,3 +36,10 @@ yarn-error.log*
 next-env.d.ts
 
 .vercel
+
+# temporary & scratch
+scratch/
+extracted_page_js.js
+recovered_chunk.js
+project_report.html
+

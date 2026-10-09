@@ -1,36 +1,57 @@
+@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  --green: #3CAC3B;
+  --blue: #2A398D;
+  --red: #E61D25;
+  --grey: #474A4A;
+}
+
 html {
-  scroll-behavior: auto;
+  scroll-behavior: smooth;
   background-color: #020617;
-}
-
-html.lenis, html.lenis body {
-  height: auto;
-}
-
-.lenis.lenis-smooth {
-  scroll-behavior: auto !important;
-}
-
-.lenis.lenis-smooth [data-lenis-prevent] {
-  overscroll-behavior: contain;
-}
-
-.lenis.lenis-stopped {
-  overflow: hidden;
-}
-
-.lenis.lenis-scrolling iframe {
-  pointer-events: none;
 }
 
 body {
+  font-family: 'Inter', sans-serif;
   background-color: #020617;
   color: #f8fafc;
   overflow-x: hidden;
+}
+
+h1, h2, h3, h4, h5, h6, .font-heading {
+  font-family: 'Bebas Neue', sans-serif;
+  letter-spacing: 0.05em;
+}
+
+/* IntersectionObserver Fade Up Animations */
+.fade-up-element {
+  opacity: 0;
+  transform: translateY(30px);
+  transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1), transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.fade-up-element.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Pulsing Gold Glow for the Trophy */
+@keyframes goldGlow {
+  0%, 100% {
+    filter: drop-shadow(0 0 25px rgba(234, 179, 8, 0.3)) drop-shadow(0 0 50px rgba(234, 179, 8, 0.15));
+  }
+  50% {
+    filter: drop-shadow(0 0 45px rgba(234, 179, 8, 0.55)) drop-shadow(0 0 80px rgba(234, 179, 8, 0.35));
+  }
+}
+
+.gold-glow-trophy {
+  animation: goldGlow 4s ease-in-out infinite;
 }
 
 /* Custom Stadium Light Beams Animation */
@@ -101,31 +122,4 @@ body {
 }
 ::-webkit-scrollbar-thumb:hover {
   background: #10b981;
-}
-
-/* Trophy Glow Pulse and Float Animations */
-@keyframes trophyPulse {
-  0%, 100% {
-    box-shadow: 0 0 15px rgba(255, 215, 0, 0.3);
-  }
-  50% {
-    box-shadow: 0 0 45px rgba(255, 215, 0, 0.75);
-  }
-}
-
-@keyframes trophyFloat {
-  0%, 100% {
-    transform: translateY(0);
-  }
-  50% {
-    transform: translateY(-8px);
-  }
-}
-
-.animate-trophy-pulse {
-  animation: trophyPulse 2s infinite ease-in-out;
-}
-
-.animate-trophy-float {
-  animation: trophyFloat 3s infinite ease-in-out;
 }

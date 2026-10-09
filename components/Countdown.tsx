@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
 
 const TARGET_DATE = '2026-06-11T18:00:00Z'; // Kickoff time
 
@@ -45,18 +44,9 @@ export default function Countdown() {
             <div className="absolute inset-0 bg-gradient-to-b from-white/5 to-transparent pointer-events-none" />
             <div className="absolute top-0 bottom-1/2 left-0 right-0 border-b border-slate-950/60" />
 
-            <AnimatePresence mode="popLayout">
-              <motion.span
-                key={value}
-                initial={{ y: 25, opacity: 0 }}
-                animate={{ y: 0, opacity: 1 }}
-                exit={{ y: -25, opacity: 0 }}
-                transition={{ type: 'spring', stiffness: 150, damping: 15 }}
-                className="text-3xl md:text-4xl font-extrabold text-white select-none z-10 font-mono tracking-tight"
-              >
-                {String(value).padStart(2, '0')}
-              </motion.span>
-            </AnimatePresence>
+            <span className="text-3xl md:text-4xl font-extrabold text-white select-none z-10 font-mono tracking-tight transition-all duration-300">
+              {String(value).padStart(2, '0')}
+            </span>
           </div>
           <span className="text-[10px] md:text-xs font-bold text-slate-500 uppercase tracking-widest mt-2">
             {label}

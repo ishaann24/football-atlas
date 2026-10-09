@@ -12,6 +12,7 @@
     "@react-three/drei": "^9.121.4",
     "@react-three/fiber": "^8.17.14",
     "@supabase/supabase-js": "^2.107.0",
+    "bcryptjs": "^3.0.3",
     "canvas-confetti": "^1.9.4",
     "framer-motion": "^12.40.0",
     "gsap": "^3.15.0",
@@ -23,6 +24,7 @@
     "three": "^0.184.0"
   },
   "devDependencies": {
+    "@types/bcryptjs": "^2.4.6",
     "@types/canvas-confetti": "^1.9.0",
     "@types/node": "^20",
     "@types/react": "^18",
@@ -31,6 +33,7 @@
     "eslint": "^8",
     "eslint-config-next": "14.2.35",
     "postcss": "^8",
+    "sharp": "^0.34.5",
     "tailwindcss": "^3.4.1",
     "typescript": "^5"
   }
