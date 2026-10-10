@@ -129,51 +129,53 @@ GNews API's free tier has a 100 requests/day limit and 12-hour news delay. Repla
 
 ## 📂 Project Structure
 
+```
 ├── app/
-│ ├── page.tsx # Homepage (hero, standings, poll, news, features)
-│ ├── schedule/page.tsx # 104-match schedule with bracket tab
-│ ├── bracket/page.tsx # Visual knockout bracket tree
-│ ├── predict/page.tsx # Score predictor with stadium hero
-│ ├── leaderboard/page.tsx # Global prediction rankings
-│ ├── news/page.tsx # News hub with topic filters
-│ ├── about/page.tsx # Records, Golden Boot, tournament facts
-│ ├── alerts/page.tsx # Goal alert registration
-│ ├── legal/page.tsx # Privacy, Terms, Disclaimer
-│ ├── match/[id]/page.tsx # Individual match stats (104 dynamic pages)
-│ └── api/
-│ ├── matches/ # Merged static + live data endpoint
-│ ├── standings/ # Computed from live_scores cache
-│ ├── bracket/ # Knockout bracket from cache
-│ ├── news/ # News articles from cache
-│ ├── poll/ # Fan poll votes
-│ ├── hype/ # Player hype counts
-│ ├── rate-match/ # Match ratings
-│ ├── predict/ # Prediction CRUD
-│ ├── leaderboard/ # Rankings endpoint
-│ ├── user/ # Auth (login/register)
-│ └── cron/
-│ ├── refresh-scores/ # Live score cache warmer
-│ ├── refresh-news/ # News cache warmer
-│ ├── goal-alerts/ # Alert dispatcher
-│ └── score-predictions/ # Auto-scorer
+│   ├── page.tsx                    # Homepage (hero, standings, poll, news, features)
+│   ├── schedule/page.tsx           # 104-match schedule with bracket tab
+│   ├── bracket/page.tsx            # Visual knockout bracket tree
+│   ├── predict/page.tsx            # Score predictor with stadium hero
+│   ├── leaderboard/page.tsx        # Global prediction rankings
+│   ├── news/page.tsx               # News hub with topic filters
+│   ├── about/page.tsx              # Records, Golden Boot, tournament facts
+│   ├── alerts/page.tsx             # Goal alert registration
+│   ├── legal/page.tsx              # Privacy, Terms, Disclaimer
+│   ├── match/[id]/page.tsx         # Individual match stats (104 dynamic pages)
+│   └── api/
+│       ├── matches/                # Merged static + live data endpoint
+│       ├── standings/              # Computed from live_scores cache
+│       ├── bracket/                # Knockout bracket from cache
+│       ├── news/                   # News articles from cache
+│       ├── poll/                   # Fan poll votes
+│       ├── hype/                   # Player hype counts
+│       ├── rate-match/             # Match ratings
+│       ├── predict/                # Prediction CRUD
+│       ├── leaderboard/            # Rankings endpoint
+│       ├── user/                   # Auth (login/register)
+│       └── cron/
+│           ├── refresh-scores/     # Live score cache warmer
+│           ├── refresh-news/       # News cache warmer
+│           ├── goal-alerts/        # Alert dispatcher
+│           └── score-predictions/  # Auto-scorer
 ├── components/
-│ ├── MatchCard.tsx # Match card with score, flags, actions
-│ ├── FanPoll.tsx # Voting widget
-│ ├── MatchRating.tsx # Star rating widget
-│ ├── NewsStrip.tsx # Homepage news ticker
-│ └── RegisterForm.tsx # Alert signup form
+│   ├── BracketTree.tsx             # Shared converging bracket tree component
+│   ├── MatchCard.tsx               # Match card with score, flags, actions
+│   ├── FanPoll.tsx                 # Voting widget
+│   ├── MatchRating.tsx             # Star rating widget
+│   ├── NewsStrip.tsx               # Homepage news ticker
+│   └── RegisterForm.tsx            # Alert signup form
 ├── lib/
-│ ├── live-scores.ts # Cache refresh logic
-│ ├── static-standings.ts # Final group standings data
-│ ├── team-codes.ts # Country → flag code mapping
-│ ├── news.ts # RSS parsing
-│ ├── news-cache.ts # Supabase news cache layer
-│ └── supabase.ts # DB client
-└── data/
-└── matches.json # All 104 matches with final scores
-
-
----
+│   ├── live-scores.ts              # Cache refresh logic
+│   ├── static-standings.ts         # Final group standings data
+│   ├── team-codes.ts               # Country → flag code mapping
+│   ├── news.ts                     # RSS parsing
+│   ├── news-cache.ts               # Supabase news cache layer
+│   └── supabase.ts                 # DB client
+├── data/
+│   └── matches.json                # All 104 matches with final scores
+└── scripts/
+    └── fetch-schedule.mjs          # Match dataset fetch & update script
+```
 
 ## 🗄️ Database Tables
 
