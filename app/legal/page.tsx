@@ -188,7 +188,15 @@ export default function LegalPage() {
         {/* Nav */}
         <nav className="wc-nav">
           <a href="/" style={{textDecoration:'none'}}>
-            <div className="wc-logo">WC<span>26</span></div>
+            <div style={{
+              fontFamily:"'Bebas Neue',sans-serif",
+              fontSize:20, letterSpacing:3,
+              color:'#fff', cursor:'pointer'
+            }}>
+              FOOTBALL<span style={{color:'#3CAC3B'}}>
+                ATLAS
+              </span>
+            </div>
           </a>
           <div className="nav-pills">
             <a href="/" style={{textDecoration:'none'}} className="mobile-home-btn">
@@ -463,7 +471,14 @@ export default function LegalPage() {
 
         {/* Footer */}
         <footer className="wc-footer">
-          <div className="footer-logo">WC 2026</div>
+          <div className="footer-logo" style={{
+            fontFamily:"'Bebas Neue',sans-serif",
+            fontSize:18, letterSpacing:3
+          }}>
+            FOOTBALL<span style={{color:'#3CAC3B'}}>
+              ATLAS
+            </span>
+          </div>
           <div className="footer-stripe">
             <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: 'var(--g)' }} />
             <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: 'var(--b)' }} />

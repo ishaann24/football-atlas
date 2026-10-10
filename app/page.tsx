@@ -106,36 +106,17 @@ function Countdown() {
 
   if (status === 'post') {
     return (
-      <div style={{
-        display: 'inline-flex',
-        alignItems: 'center',
-        gap: 12,
-        background: 'linear-gradient(135deg, rgba(255, 215, 0, 0.1) 0%, rgba(255, 215, 0, 0.02) 100%)',
-        border: '1px solid rgba(255, 215, 0, 0.35)',
-        borderRadius: '16px',
-        padding: '16px 28px',
-        boxShadow: '0 8px 32px rgba(255, 215, 0, 0.1)',
-        backdropFilter: 'blur(8px)'
-      }}>
-        <span style={{ fontSize: 24 }}>🏆</span>
-        <div style={{ textAlign: 'left' }}>
-          <div style={{
-            fontFamily: "'Bebas Neue', sans-serif",
-            fontSize: 24,
-            color: '#FFD700',
-            letterSpacing: 1.5,
-            lineHeight: 1
-          }}>
-            Tournament Complete
-          </div>
-          <div style={{
-            fontSize: 11,
-            color: 'rgba(255, 255, 255, 0.5)',
-            marginTop: 4,
-            fontWeight: 500
-          }}>
-            Spain are World Champions 2026
-          </div>
+      <div style={{textAlign:'center'}}>
+        <div style={{fontSize:32}}>🏆</div>
+        <div style={{
+          fontFamily:"'Bebas Neue',sans-serif",
+          fontSize:28, color:'#FFD700', letterSpacing:2
+        }}>
+          Tournament Complete
+        </div>
+        <div style={{fontSize:13,
+          color:'rgba(255,255,255,0.4)',marginTop:6}}>
+          Spain 🏆 World Champions 2026
         </div>
       </div>
     );
@@ -169,16 +150,16 @@ function getDaysDisplay() {
   const kickoff = new Date('2026-06-11T19:00:00Z').getTime();
   const finalDate = new Date('2026-07-19T23:59:59Z').getTime();
 
-  if (now < kickoff) {
+  if (now > finalDate) {
+    return { n: '39', l: 'Days of Football' };
+  } else if (now < kickoff) {
     const diff = kickoff - now;
     const days = Math.ceil(diff / 86400000);
     return { n: `${days}`, l: days === 1 ? 'Day Left' : 'Days' };
-  } else if (now >= kickoff && now <= finalDate) {
+  } else {
     const diff = now - kickoff;
     const dayOfTournament = Math.floor(diff / 86400000) + 1;
     return { n: `Day ${dayOfTournament}`, l: 'of 39' };
-  } else {
-    return { n: 'Ended', l: 'Tournament' };
   }
 }
 
@@ -555,7 +536,15 @@ export default function Home() {
         {/* Nav */}
         <nav className="wc-nav">
           <a href="/" style={{textDecoration:'none'}}>
-            <div className="wc-logo">WC<span>26</span></div>
+            <div style={{
+              fontFamily:"'Bebas Neue',sans-serif",
+              fontSize:20, letterSpacing:3,
+              color:'#fff', cursor:'pointer'
+            }}>
+              FOOTBALL<span style={{color:'#3CAC3B'}}>
+                ATLAS
+              </span>
+            </div>
           </a>
           <div className="nav-pills">
             <a href="/schedule" style={{textDecoration:'none'}}>
@@ -788,7 +777,14 @@ export default function Home() {
 
         {/* Footer */}
         <footer className="wc-footer">
-          <div className="footer-logo">WC 2026</div>
+          <div className="footer-logo" style={{
+            fontFamily:"'Bebas Neue',sans-serif",
+            fontSize:18, letterSpacing:3
+          }}>
+            FOOTBALL<span style={{color:'#3CAC3B'}}>
+              ATLAS
+            </span>
+          </div>
           <div className="footer-stripe">
             <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: 'var(--g)' }} />
             <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: 'var(--b)' }} />

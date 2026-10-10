@@ -14,8 +14,8 @@ const geistMono = localFont({
 });
 
 export const metadata = {
-  title: 'FIFA World Cup 2026 | Predict · Standings · News · Goal Alerts',
-  description: 'Your complete FIFA World Cup 2026 fan hub. Predict match scores, track live group standings, get instant goal alerts, follow the Golden Boot race and read the latest news. Free forever.',
+  title: 'Football Atlas | FIFA World Cup 2026 Archive',
+  description: 'Complete FIFA World Cup 2026 archive — all 104 match results, final standings, knockout bracket, Golden Boot, fan predictions and more.',
 }
 
 export default function RootLayout({

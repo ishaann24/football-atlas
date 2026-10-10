@@ -1,6 +1,8 @@
 import rawMatches from '@/data/matches.json';
 import { NextResponse } from 'next/server';
 
+export const dynamic = 'force-dynamic';
+
 export async function GET() {
   const knockouts = (rawMatches as any[])
     .filter(m => m.stage !== 'Group Stage')

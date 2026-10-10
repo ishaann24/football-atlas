@@ -116,6 +116,14 @@ export async function getCachedLiveScores(): Promise<Map<number, LiveScore>> {
 export function mergeLiveData(staticMatches: any[], liveMap: Map<number, LiveScore>): any[] {
   let mergedCount = 0;
   const result = staticMatches.map(m => {
+    // Static already has confirmed finished score
+    // Don't overwrite with potentially stale cache
+    if (m.status === 'finished' && 
+        m.homeScore !== null && 
+        m.homeScore !== undefined) {
+      return m;
+    }
+
     const live = liveMap.get(m.apiId);
     if (!live) return m;
     mergedCount++;

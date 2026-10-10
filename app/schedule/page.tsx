@@ -3,6 +3,7 @@ import React, { useState, useEffect, useRef, useMemo } from 'react';
 import rawMatches from '@/data/matches.json';
 import TimezoneSelector from '@/components/TimezoneSelector';
 import MatchCard from '@/components/MatchCard';
+import BracketTree from '@/components/BracketTree';
 
 interface RawMatch {
   id: number; matchNumber: number; homeTeam: string | null; awayTeam: string | null;
@@ -236,7 +237,15 @@ export default function SchedulePage() {
         {/* Nav */}
         <nav className="wc-nav">
           <a href="/" style={{textDecoration:'none'}}>
-            <div className="wc-logo">WC<span>26</span></div>
+            <div style={{
+              fontFamily:"'Bebas Neue',sans-serif",
+              fontSize:20, letterSpacing:3,
+              color:'#fff', cursor:'pointer'
+            }}>
+              FOOTBALL<span style={{color:'#3CAC3B'}}>
+                ATLAS
+              </span>
+            </div>
           </a>
           <div className="nav-pills">
             <a href="/" style={{textDecoration:'none'}}>
@@ -401,217 +410,19 @@ export default function SchedulePage() {
           </>
         ) : (
           /* Bracket View */
-          <section style={{background:'#080808', padding:'0 24px 80px'}}>
-            <div style={{maxWidth:'1100px', margin:'0 auto'}}>
-              
-              {/* Pre-tournament banner */}
-              <FadeSection>
-                {!hasRealData && (
-                  <div style={{
-                    background:'rgba(255,215,0,0.05)',
-                    border:'1px solid rgba(255,215,0,0.2)',
-                    borderRadius:10, padding:'20px 24px',
-                    marginBottom:32,
-                    display:'flex', alignItems:'center', gap:16
-                  }}>
-                    <span style={{fontSize:28}}>⏳</span>
-                    <div>
-                      <div style={{
-                        fontFamily:"'Bebas Neue',sans-serif",
-                        fontSize:20, color:'#FFD700',
-                        letterSpacing:2, marginBottom:4
-                      }}>
-                        Bracket Reveals June 27
-                      </div>
-                      <div style={{fontSize:12, color:'rgba(255,255,255,0.4)'}}>
-                        Group stage runs June 11-26. The knockout bracket is drawn after all group matches complete.
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </FadeSection>
-
-              {/* Bracket Layout */}
-              <FadeSection delay={100}>
-                {bracketLoading ? (
-                  <div style={{textAlign:'center', color:'rgba(255,255,255,0.3)', padding:40}}>
-                    Loading knockout bracket...
-                  </div>
-                ) : (
-                  <div style={{
-                    overflowX: 'auto',
-                    WebkitOverflowScrolling: 'touch' as any,
-                    paddingBottom: 20
-                  }}>
-                    <div style={{
-                      display: 'grid',
-                      gridTemplateColumns: 'repeat(5, 220px)',
-                      gap: 16,
-                      minWidth: 1140,
-                      alignItems: 'center',
-                      padding: '0 4px'
-                    }}>
-                      {ROUNDS.map((round, roundIdx) => (
-                        <div key={round.name}>
-                          {/* Round header */}
-                          <div style={{
-                            textAlign: 'center',
-                            marginBottom: 16,
-                            padding: '8px 0',
-                            borderBottom: '1px solid rgba(255,255,255,0.07)'
-                          }}>
-                            <div style={{
-                              fontFamily:"'Bebas Neue',sans-serif",
-                              fontSize: 16, color: '#fff',
-                              letterSpacing: 2
-                            }}>
-                              {round.name}
-                            </div>
-                            <div style={{
-                              fontSize: 10,
-                              color: 'rgba(255,255,255,0.3)',
-                              marginTop: 2
-                            }}>
-                              {round.dates}
-                            </div>
-                          </div>
-
-                          {/* Match slots for this round */}
-                          <div style={{
-                            display: 'flex',
-                            flexDirection: 'column' as const,
-                            gap: round.name === 'Final' ? 0 : 12
-                          }}>
-                            {Array.from({length: round.matches}).map((_, matchIdx) => {
-                              const stageMap: Record<string,string> = {
-                                'Round of 32': 'LAST_32',
-                                'Round of 16': 'LAST_16',
-                                'Quarter Finals': 'QUARTER_FINALS',
-                                'Semi Finals': 'SEMI_FINALS',
-                                'Final': 'FINAL'
-                              };
-                              
-                              const roundMatches = bracketMatches.filter(
-                                m => m.stage === stageMap[round.name]
-                              );
-                              const match = roundMatches[matchIdx];
-                              
-                              const homeTeam = match?.homeTeam?.name || 'TBD';
-                              const awayTeam = match?.awayTeam?.name || 'TBD';
-                              const isFinished = match?.status === 'FINISHED' || match?.status === 'finished';
-                              const homeScore = match?.score?.fullTime?.home;
-                              const awayScore = match?.score?.fullTime?.away;
-                              const winner = isFinished && homeScore !== null
-                                ? homeScore > awayScore ? homeTeam : awayTeam
-                                : null;
-
-                              return (
-                                <div key={matchIdx} style={{
-                                  background: '#111',
-                                  border: `1px solid ${winner 
-                                    ? 'rgba(60,172,59,0.3)' 
-                                    : 'rgba(255,255,255,0.07)'}`,
-                                  borderRadius: 8,
-                                  padding: '10px 12px',
-                                  minHeight: 80
-                                }}>
-                                  {/* Home team */}
-                                  <div style={{
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'space-between',
-                                    marginBottom: 6,
-                                    opacity: winner && winner !== homeTeam 
-                                      ? 0.4 : 1
-                                  }}>
-                                    <span style={{
-                                      fontSize: 12, fontWeight: 600,
-                                      color: winner === homeTeam 
-                                        ? '#3CAC3B' : '#fff'
-                                    }}>
-                                      {homeTeam}
-                                    </span>
-                                    {isFinished && homeScore !== null && (
-                                      <span style={{
-                                        fontFamily:"'Bebas Neue',sans-serif",
-                                        fontSize: 16,
-                                        color: winner === homeTeam 
-                                          ? '#3CAC3B' : 'rgba(255,255,255,0.5)'
-                                      }}>
-                                        {homeScore}
-                                      </span>
-                                    )}
-                                  </div>
-
-                                  {/* Divider */}
-                                  <div style={{
-                                    height: 1,
-                                    background: 'rgba(255,255,255,0.06)',
-                                    margin: '4px 0'
-                                  }}/>
-
-                                  {/* Away team */}
-                                  <div style={{
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'space-between',
-                                    marginTop: 6,
-                                    opacity: winner && winner !== awayTeam 
-                                      ? 0.4 : 1
-                                  }}>
-                                    <span style={{
-                                      fontSize: 12, fontWeight: 600,
-                                      color: winner === awayTeam 
-                                        ? '#3CAC3B' : '#fff'
-                                    }}>
-                                      {awayTeam}
-                                    </span>
-                                    {isFinished && awayScore !== null && (
-                                      <span style={{
-                                        fontFamily:"'Bebas Neue',sans-serif",
-                                        fontSize: 16,
-                                        color: winner === awayTeam 
-                                          ? '#3CAC3B' : 'rgba(255,255,255,0.5)'
-                                      }}>
-                                        {awayScore}
-                                      </span>
-                                    )}
-                                  </div>
-
-                                  {/* Status */}
-                                  {!isFinished && homeTeam !== 'TBD' && (
-                                    <div style={{
-                                      fontSize: 9, marginTop: 6,
-                                      color: 'rgba(255,255,255,0.25)',
-                                      letterSpacing: 1
-                                    }}>
-                                      {match?.utcDate 
-                                        ? new Date(match.utcDate)
-                                            .toLocaleDateString('en-IN', {
-                                              month:'short', day:'numeric'
-                                            })
-                                        : 'Date TBC'
-                                      }
-                                    </div>
-                                  )}
-                                </div>
-                              );
-                            })}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </FadeSection>
-
-            </div>
-          </section>
+          <BracketTree />
         )}
 
         {/* Footer */}
         <footer className="wc-footer">
-          <div className="footer-logo">WC 2026</div>
+          <div className="footer-logo" style={{
+            fontFamily:"'Bebas Neue',sans-serif",
+            fontSize:18, letterSpacing:3
+          }}>
+            FOOTBALL<span style={{color:'#3CAC3B'}}>
+              ATLAS
+            </span>
+          </div>
           <div className="footer-stripe">
             <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: 'var(--g)' }} />
             <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: 'var(--b)' }} />

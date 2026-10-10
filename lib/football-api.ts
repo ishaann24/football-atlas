@@ -25,7 +25,7 @@ export async function sendEmailAlert(
       body: JSON.stringify({
         sender: {
           name: 'FIFA 2026 Fan Club',
-          email: process.env.BREVO_SENDER_EMAIL || 'alerts@yoursite.vercel.app',
+          email: process.env.BREVO_SENDER_EMAIL || 'alerts@world-cup-fan-site.vercel.app',
         },
         to: [{ email: toEmail, name: toName }],
         subject: subject,

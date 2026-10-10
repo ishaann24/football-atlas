@@ -1,217 +1,267 @@
-# 🏆 FIFA World Cup 2026 Fan Hub
+# ⚽ Football Atlas — FIFA World Cup 2026 Fan Hub
 
-[![Next.js](https://img.shields.io/badge/Next.js-14.2-black?style=for-the-badge&logo=next.js)](https://nextjs.org/)
+[![Next.js](https://img.shields.io/badge/Next.js-14-black?style=for-the-badge&logo=next.js)](https://nextjs.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue?style=for-the-badge&logo=typescript)](https://www.typescriptlang.org/)
-[![Tailwind CSS](https://img.shields.io/badge/Tailwind--CSS-3.4-blue?style=for-the-badge&logo=tailwindcss)](https://tailwindcss.com/)
-[![Supabase](https://img.shields.io/badge/Supabase-Database-emerald?style=for-the-badge&logo=supabase)](https://supabase.com/)
-[![Vercel](https://img.shields.io/badge/Vercel-Deployment-black?style=for-the-badge&logo=vercel)](https://vercel.com/)
+[![Supabase](https://img.shields.io/badge/Supabase-PostgreSQL-emerald?style=for-the-badge&logo=supabase)](https://supabase.com/)
+[![Vercel](https://img.shields.io/badge/Vercel-Deployed-black?style=for-the-badge&logo=vercel)](https://vercel.com/)
 
-An interactive, high-performance, dark-themed fan web application for the **FIFA World Cup 2026**. Built with Next.js (App Router), TypeScript, and glassmorphic UI design, this platform provides complete coverage for all **104 tournament matches**, full group stage standings, an interactive knockout bracket, score prediction engine, fan polls, timezone converter, and broadcast links.
+**Football Atlas** is a full-stack, real-time football fan platform built during the live **FIFA World Cup 2026** tournament. It served as a complete fan hub covering all 104 matches across the USA, Canada and Mexico — from opening day (June 11) through to Spain's final victory over Argentina on July 19, 2026.
+
+🔗 **Live Site:** [world-cup-fan-site.vercel.app](https://world-cup-fan-site.vercel.app)
 
 ---
 
-## ✨ Key Features
+## 🏆 Tournament Result
 
-- **🏆 Complete Tournament & Knockout Bracket**: Visual converging tree displaying the entire Road to Glory from the Round of 32 down to the July 19 Final at MetLife Stadium, highlighting **Spain 🏆 as 2026 World Champions**.
-- **📅 Full 104 Match Schedule**: Detailed schedule with scores, stage info, venues, search filters, and team selectors.
-- **📊 Static Final Group Standings**: Complete final group tables for all 12 groups (Groups A through L) with country flags, P/W/D/L/GD/PTS metrics, and green qualification indicators.
-- **🌐 Dynamic Timezone Converter**: Client-side timezone detector with manual timezone selector (defaulting to client timezone) that instantly adjusts all kickoff times.
-- **📥 Client-Side Calendar Invites (.ics)**: Zero-dependency `.ics` file generator allowing fans to export fixture dates directly to Google Calendar, Apple Calendar, or Outlook.
-- **🎯 Score Predictor & Leaderboard**: Community prediction system allowing fans to submit match predictions, accumulate points, and view global rankings.
-- **🗳️ Interactive Fan Polls & ⭐ Match Ratings**: Live polling system for match predictions and 5-star match rating feedback for classic fixtures.
-- **📺 Geolocation-Smart Streaming Links**: IP-based country detection (`ipapi.co`) automatically directing fans to their local broadcaster:
-  - 🇮🇳 **India**: Disney+ Hotstar
-  - 🇺🇸 **USA**: Peacock / Fubo
-  - 🇬🇧 **United Kingdom**: BBC iPlayer
-  - 🌐 **Rest of World**: FIFA+
-- **🔔 WhatsApp & Email Alert System**: Subscription engine integrated with **Meta WhatsApp Cloud API** and **Brevo SMTP** for instant goal notification dispatching.
-- **💬 AI WhatsApp Chatbot**: Automated assistant powered by **Anthropic Claude 3.5 Sonnet** for answering fan queries on stats and tournament info.
+**Spain 🇪🇸 are FIFA World Cup 2026 Champions**
+Spain 1–0 Argentina (AET) · MetLife Stadium · July 19, 2026
+
+**Golden Boot:** Kylian Mbappé 🇫🇷 — 10 goals
+(First player ever to win consecutive World Cup Golden Boots)
+
+---
+
+## ✨ Features
+
+### 📅 Complete Match Archive
+- All 104 fixtures with final scores, venues, dates and stages
+- Group stage, Round of 32, Round of 16, Quarter Finals, Semi Finals and Final
+- Results updated statically post-tournament for permanent accuracy
+- Timezone-aware kickoff times (auto-detects local timezone)
+- Add to Calendar (.ics) export for any fixture
+
+### 📊 Final Group Standings
+- Complete final tables for all 12 groups (A through L)
+- P / W / D / L / GD / PTS for every team
+- Country flags via FlagCDN
+- Green highlight for qualified teams
+
+### 🏆 Interactive Knockout Bracket
+- Full visual converging tree from Round of 32 to the Final
+- Penalty shootout results displayed
+- AET (after extra time) indicators
+- Spain highlighted as World Champions 2026
+- Horizontally scrollable on mobile
+
+### 🎯 Score Predictor & Leaderboard
+- Fans predicted scores before each match kicked off
+- Points system: 3pts for exact score, 1pt for correct result
+- Global leaderboard with rankings
+- Full auth system (bcrypt passwords, session tokens)
+- Auto-scored against real results via cron job
+
+### 🔔 Live Goal Alerts
+- Email notifications via Brevo SMTP
+- WhatsApp alerts via Meta WhatsApp Cloud API
+- Fans register with name, email, WhatsApp and favourite team
+- Deduplication system prevents duplicate alerts per goal event
+- Ran live during the tournament — alerts fired within minutes of goals
+
+### 🗞️ Live News Feed
+- Multi-source RSS aggregation (Google News, BBC Sport, ESPN, Guardian, Al Jazeera)
+- Supabase caching layer (30-minute refresh cycle)
+- Topic filters: Match Reports, Squads & Transfers, Injuries, Players, Analysis
+- og:image scraping for articles missing RSS thumbnails
+- Still active post-tournament for ongoing football news
+
+### 🗳️ Fan Poll
+- "Who Lifts the Trophy?" poll ran during tournament
+- Real vote counts stored in Supabase
+- IP-based deduplication (one vote per user)
+- Top 4 teams displayed as animated fill bars
+- 239 fans voted during the tournament
+
+### ⭐ Match Ratings
+- Fans rate finished matches 1–5 stars
+- Live average score displayed per match
+- "CLASSIC" badge for matches rated 4.5+
+- One rating per IP per match
+
+### 💪 Player Hype
+- Fans hype their favourite Golden Boot contender
+- Real-time counts from Supabase
+- One hype per user total
+
+### 📜 Legal
+- Privacy Policy, Terms of Use, Disclaimer
+- Contact email for data deletion requests
+- Fan creation disclaimer (not affiliated with FIFA)
 
 ---
 
 ## 🛠️ Tech Stack
 
-- **Framework**: [Next.js 14](https://nextjs.org/) (App Router, Server Components & API Routes)
-- **Language**: [TypeScript](https://www.typescriptlang.org/)
-- **Styling**: Vanilla CSS + [Tailwind CSS](https://tailwindcss.com/) (Glassmorphism & Dark Mode)
-- **State & UI Icons**: Lucide React, Custom SVG icons, FlagCDN integration
-- **Database**: [Supabase](https://supabase.com/) (PostgreSQL)
-- **AI & Messaging**: Meta WhatsApp Cloud API, Brevo SMTP Email, Anthropic Claude API
-- **Deployment**: [Vercel](https://vercel.com/)
+| Layer | Technology |
+|---|---|
+| Framework | Next.js 14 (App Router) |
+| Language | TypeScript |
+| Styling | Inline CSS-in-JS (no Tailwind in production) |
+| Database | Supabase (PostgreSQL) |
+| Auth | Custom bcrypt + session tokens |
+| Email | Brevo SMTP API |
+| WhatsApp | Meta WhatsApp Cloud API |
+| Match Data | football-data.org API (cached) |
+| News | Multi-source RSS + Supabase cache |
+| Flags | FlagCDN (free, no API key) |
+| Fonts | Bebas Neue + Inter (Google Fonts) |
+| Hosting | Vercel (Hobby plan) |
+| Cron Jobs | cron-job.org (external, free) |
 
 ---
 
-## 📂 Project Architecture
+## 🏗️ Architecture Decisions
 
-```
-PROJECT-1 AG/
+### Cached Data Layer
+football-data.org's free tier allows only 10 requests/minute. Rather than calling it directly from every page load, a dedicated `/api/cron/refresh-scores` endpoint fetches all 104 match states every 5 minutes and writes them to a `live_scores` Supabase table. All other features read from this cache — meaning the API is called once per 5 minutes regardless of site traffic.
+
+This was built after the API key was banned twice for rate limit abuse caused by direct calls from page components and cron jobs.
+
+### Static-First with Live Overlay
+`matches.json` is the static backbone — it contains all 104 matches with venues, groups, stages and team names. The live cache overlays scores and status on top. Post-tournament, scores are hardcoded directly into matches.json for permanent correctness with zero API dependency.
+
+### External Crons on Vercel Hobby
+Vercel's Hobby plan doesn't support frequent cron jobs. Four external crons on cron-job.org handle: live score refresh (every 5 min), goal alert dispatch (every 3 min), prediction scoring (every 15 min), and news cache refresh (every 30 min).
+
+### News Without Rate Limits
+GNews API's free tier has a 100 requests/day limit and 12-hour news delay. Replaced with direct RSS parsing from Google News, BBC Sport, ESPN and Guardian — unlimited, free, and near real-time. Results cached in Supabase for 30 minutes.
+
+---
+
+## 📂 Project Structure
+
 ├── app/
-│   ├── page.tsx               # Homepage Dashboard (Hero, TodaysMatches, Standings, Features)
-│   ├── schedule/
-│   │   └── page.tsx           # Full 104 Fixtures Directory & Bracket Tab
-│   ├── bracket/
-│   │   └── page.tsx           # Interactive Converging Knockout Bracket Page
-│   ├── predict/
-│   │   └── page.tsx           # Match Score Predictor
-│   ├── leaderboard/
-│   │   └── page.tsx           # Global Predictions Leaderboard
-│   ├── news/
-│   │   └── page.tsx           # World Cup News Hub
-│   ├── about/
-│   │   └── page.tsx           # Tournament Facts & Golden Boot Contenders
-│   ├── alerts/
-│   │   └── page.tsx           # WhatsApp & Email Subscription Page
-│   ├── legal/
-│   │   └── page.tsx           # Privacy Policy & Terms
-│   ├── match/[id]/
-│   │   └── page.tsx           # Match Detail & Rating View
-│   └── api/
-│       ├── matches/           # Static matches API route
-│       ├── standings/         # Group standings API route
-│       ├── bracket/           # Knockout bracket API route
-│       ├── register/          # User subscription endpoint
-│       ├── whatsapp/          # Meta WhatsApp Webhook receiver
-│       └── cron/              # Live score polling & notification cron job
+│ ├── page.tsx # Homepage (hero, standings, poll, news, features)
+│ ├── schedule/page.tsx # 104-match schedule with bracket tab
+│ ├── bracket/page.tsx # Visual knockout bracket tree
+│ ├── predict/page.tsx # Score predictor with stadium hero
+│ ├── leaderboard/page.tsx # Global prediction rankings
+│ ├── news/page.tsx # News hub with topic filters
+│ ├── about/page.tsx # Records, Golden Boot, tournament facts
+│ ├── alerts/page.tsx # Goal alert registration
+│ ├── legal/page.tsx # Privacy, Terms, Disclaimer
+│ ├── match/[id]/page.tsx # Individual match stats (104 dynamic pages)
+│ └── api/
+│ ├── matches/ # Merged static + live data endpoint
+│ ├── standings/ # Computed from live_scores cache
+│ ├── bracket/ # Knockout bracket from cache
+│ ├── news/ # News articles from cache
+│ ├── poll/ # Fan poll votes
+│ ├── hype/ # Player hype counts
+│ ├── rate-match/ # Match ratings
+│ ├── predict/ # Prediction CRUD
+│ ├── leaderboard/ # Rankings endpoint
+│ ├── user/ # Auth (login/register)
+│ └── cron/
+│ ├── refresh-scores/ # Live score cache warmer
+│ ├── refresh-news/ # News cache warmer
+│ ├── goal-alerts/ # Alert dispatcher
+│ └── score-predictions/ # Auto-scorer
 ├── components/
-│   ├── MatchCard.tsx          # Card view with .ics calendar generator & streaming links
-│   ├── RegisterForm.tsx       # User alert sign-up form with confetti animation
-│   ├── FanPoll.tsx            # Community polling widget
-│   ├── MatchRating.tsx        # Star-rating widget for finished matches
-│   ├── TimezoneSelector.tsx   # Timezone selection dropdown
-│   └── NewsStrip.tsx          # Tournament news ticker
-├── data/
-│   └── matches.json           # Master dataset for all 104 match results
+│ ├── MatchCard.tsx # Match card with score, flags, actions
+│ ├── FanPoll.tsx # Voting widget
+│ ├── MatchRating.tsx # Star rating widget
+│ ├── NewsStrip.tsx # Homepage news ticker
+│ └── RegisterForm.tsx # Alert signup form
 ├── lib/
-│   ├── static-standings.ts    # Final group stage standings dataset (Groups A-L)
-│   ├── team-codes.ts          # Country code mappings for flagcdn.com
-│   ├── live-scores.ts         # Live data helper routines
-│   ├── supabase.ts            # Supabase database client
-│   ├── whatsapp.ts            # WhatsApp message dispatcher
-│   └── claude.ts              # Anthropic Claude API client
-├── scripts/
-│   └── update-matches.js      # Match dataset processing script
-├── README.md                  # Project Documentation
-└── vercel.json                # Vercel Cron Configuration
-```
+│ ├── live-scores.ts # Cache refresh logic
+│ ├── static-standings.ts # Final group standings data
+│ ├── team-codes.ts # Country → flag code mapping
+│ ├── news.ts # RSS parsing
+│ ├── news-cache.ts # Supabase news cache layer
+│ └── supabase.ts # DB client
+└── data/
+└── matches.json # All 104 matches with final scores
+
 
 ---
 
-## 🚀 Local Setup & Quick Start
+## 🗄️ Database Tables
 
-### Prerequisites
-- **Node.js** v18.0.0 or higher
-- **npm** or **yarn**
+| Table | Purpose |
+|---|---|
+| `fans` | Alert registrations (name, email, WhatsApp, team) |
+| `predictor_users` | Prediction game accounts |
+| `predictions` | All submitted score predictions |
+| `user_sessions` | Auth session tokens |
+| `live_scores` | Cached match scores (refreshed every 5 min) |
+| `news_cache` | Cached news articles (refreshed every 30 min) |
+| `fan_poll_votes` | Who Lifts the Trophy poll votes |
+| `match_ratings` | 1-5 star match ratings |
+| `player_hype` | Golden Boot player hype counts |
+| `processed_events` | Deduplication log for goal alerts |
+| `bracket_matches` | Knockout bracket cache |
+| `top_scorers` | Golden Boot standings cache |
 
-### Installation
-
-1. **Clone the repository**:
-   ```bash
-   git clone https://github.com/your-username/fifa-world-cup-2026-fan-hub.git
-   cd fifa-world-cup-2026-fan-hub
-   ```
-
-2. **Install dependencies**:
-   ```bash
-   npm install
-   ```
-
-3. **Start the development server**:
-   ```bash
-   npm run dev
-   ```
-
-4. Open **[http://localhost:3000](http://localhost:3000)** in your browser.
-
-5. **Build for Production**:
-   ```bash
-   npm run build
-   ```
+All tables have Row Level Security enabled.
 
 ---
 
-## ⚙️ Environment Configuration (`.env.local`)
-
-To enable database storage, WhatsApp goal dispatches, or AI chatbot features, create a `.env.local` file in the root directory:
+## ⚙️ Environment Variables
 
 ```env
-# Football Data API Key (Optional for live updates)
-FOOTBALL_DATA_API_KEY=your_football_data_api_key
+# Supabase
+NEXT_PUBLIC_SUPABASE_URL=
+NEXT_PUBLIC_SUPABASE_ANON_KEY=
+SUPABASE_SERVICE_KEY=
 
-# Supabase Connection
-NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
-SUPABASE_SERVICE_KEY=your_supabase_service_role_key
+# football-data.org
+FOOTBALL_DATA_API_KEY=
 
-# Meta WhatsApp Cloud API Configuration
-WHATSAPP_TOKEN=your_meta_system_access_token
-WHATSAPP_PHONE_ID=your_whatsapp_phone_number_id
-WHATSAPP_VERIFY_TOKEN=fifa2026_webhook_verify
+# Brevo (email)
+BREVO_API_KEY=
+BREVO_SENDER_EMAIL=
 
-# Brevo (Sendinblue) Email SMTP API
-BREVO_API_KEY=your_brevo_api_key
-BREVO_SENDER_EMAIL=your_verified_sender_email@domain.com
+# Meta WhatsApp
+WHATSAPP_TOKEN=
+WHATSAPP_PHONE_ID=
 
-# Anthropic Claude API
-ANTHROPIC_API_KEY=your_claude_api_key
+# News
+GNEWS_API_KEY=
 
-# Cron Job Secret
-CRON_SECRET=your_vercel_cron_secret
+# Cron security
+CRON_SECRET=
 ```
 
 ---
 
-## 🗄️ Database Schema (Supabase SQL)
+## 🚀 Local Setup
 
-To configure the Postgres database in your Supabase SQL Editor:
-
-```sql
--- 1. Fans Subscription Table
-CREATE TABLE fans (
-  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-  name VARCHAR(255) NOT NULL,
-  email VARCHAR(255) UNIQUE NOT NULL,
-  whatsapp VARCHAR(50) NOT NULL,
-  favourite_team VARCHAR(100) NOT NULL,
-  created_at TIMESTAMPTZ DEFAULT NOW()
-);
-
--- 2. Processed Events Log (Prevents duplicate alert dispatches)
-CREATE TABLE processed_events (
-  id VARCHAR(255) PRIMARY KEY,
-  processed_at TIMESTAMPTZ DEFAULT NOW()
-);
-
--- 3. Live Scores Cache
-CREATE TABLE live_scores (
-  api_id INT PRIMARY KEY,
-  status VARCHAR(50),
-  home_score INT,
-  away_score INT,
-  minute INT,
-  updated_at TIMESTAMPTZ DEFAULT NOW()
-);
-
--- 4. Enable Public Access for Anon API Requests
-GRANT ALL ON TABLE fans TO anon, authenticated, service_role;
-GRANT ALL ON TABLE processed_events TO anon, authenticated, service_role;
-GRANT ALL ON TABLE live_scores TO anon, authenticated, service_role;
-ALTER TABLE fans DISABLE ROW LEVEL SECURITY;
-ALTER TABLE processed_events DISABLE ROW LEVEL SECURITY;
-ALTER TABLE live_scores DISABLE ROW LEVEL SECURITY;
+```bash
+git clone https://github.com/ishaann24/football-atlas.git
+cd football-atlas
+npm install
+# Create .env.local with variables above
+npm run dev
 ```
 
----
-
-## 🌐 Deployment (Vercel)
-
-1. Push the code to your **GitHub** repository.
-2. Connect the repository to **[Vercel](https://vercel.com)**.
-3. Set your Environment Variables under **Project Settings → Environment Variables**.
-4. Deploy! Next.js will automatically generate static routes and serverless API handlers.
+Open [http://localhost:3000](http://localhost:3000)
 
 ---
 
-## 📜 Disclaimer & License
+## 🔧 Real Problems Solved
 
-- **Disclaimer**: This is an independent open-source fan creation for football enthusiasts. It is not affiliated with, endorsed by, or sponsored by FIFA.
-- **License**: [MIT License](LICENSE) — feel free to use and customize for fan platforms!
+**Rate limit bans** — football-data.org banned the API key twice. Root cause: Next.js was pre-rendering all 104 match pages at build time (208 simultaneous API calls), plus multiple cron jobs calling the API directly. Fixed by adding `export const dynamic = 'force-dynamic'` to match pages and routing all data through a single cached layer.
+
+**Goal alert spam** — 350+ duplicate emails sent to registered fans. Caused by missing `event_id` column on `processed_events` table (Supabase GRANT issue, not RLS) combined with 0-0 match states triggering alerts. Fixed with proper deduplication and a "skip if no goals scored" check.
+
+**Fake goal scorers** — "Raphinha" and "Mbappé" appeared as scorers on every single match. A `mockGoals` placeholder array from early development was never removed. Fixed by deleting the array and using real API data with an honest fallback.
+
+**Cron silent failures** — cron-job.org showed green status while database wasn't updating. The refresh endpoint returned HTTP 200 even when 0 matches were refreshed. Fixed by returning HTTP 503 when refresh count is 0, so cron-job.org logs a visible failure.
+
+**Build-time API storms** — `generateStaticParams()` in the match page caused Next.js to pre-render all 104 pages at build time, triggering 208 API calls in seconds. Removed and replaced with `force-dynamic`.
+
+---
+
+## 📜 Disclaimer
+
+Independent fan project. Not affiliated with, endorsed by, or sponsored by FIFA or any football federation. All match data sourced from public APIs and verified against official results post-tournament.
+
+---
+
+## 📄 License
+
+MIT — free to use and adapt for fan platforms.
+
+---
+
+*Built by [Ishan Shrivastava](https://github.com/ishaann24) · Student at VIT · June–July 2026*
