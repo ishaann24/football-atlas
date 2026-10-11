@@ -16,6 +16,66 @@ export default function BracketPage() {
     .nav-pills{display:flex;gap:6px;flex-wrap:wrap;}
     .np{font-size:10px;font-weight:700;padding:5px 12px;border-radius:3px;border:none;cursor:pointer;letter-spacing:1px;font-family:'Inter',sans-serif;text-transform:uppercase;}
     .np-g{background:var(--g);color:#fff;} .np-b{background:var(--b);color:#fff;} .np-r{background:var(--r);color:#fff;}
+
+    @media(max-width: 768px) {
+      .wc-nav {
+        padding: 10px 12px !important;
+        flex-wrap: wrap !important;
+        gap: 8px !important;
+      }
+      
+      .wc-logo {
+        font-size: 20px !important;
+      }
+      
+      .nav-pills {
+        display: flex !important;
+        flex-wrap: nowrap !important;
+        overflow-x: auto !important;
+        -webkit-overflow-scrolling: touch !important;
+        scrollbar-width: none !important;
+        gap: 6px !important;
+        width: 100% !important;
+        padding-bottom: 4px !important;
+      }
+      
+      .nav-pills::-webkit-scrollbar {
+        display: none !important;
+      }
+      
+      .np {
+        font-size: 10px !important;
+        padding: 6px 10px !important;
+        white-space: nowrap !important;
+        flex-shrink: 0 !important;
+        letter-spacing: 0.5px !important;
+      }
+
+      /* Bracket header */
+      .bracket-header {
+        padding: 40px 16px 24px !important;
+      }
+      
+      /* Wrapper allows horizontal scroll */
+      .bracket-scroll-wrapper {
+        overflow-x: auto !important;
+        -webkit-overflow-scrolling: touch !important;
+        padding: 0 16px 24px !important;
+        cursor: grab !important;
+      }
+      
+      /* Add a hint to swipe */
+      .bracket-scroll-wrapper::before {
+        content: '← Swipe to see full bracket →' !important;
+        display: block !important;
+        text-align: center !important;
+        font-size: 11px !important;
+        color: rgba(255,255,255,0.3) !important;
+        letter-spacing: 1px !important;
+        margin-bottom: 16px !important;
+        padding-top: 8px !important;
+      }
+    }
   `;
 
   return (
@@ -26,7 +86,7 @@ export default function BracketPage() {
       {/* Nav */}
       <nav className="wc-nav">
         <a href="/" style={{ textDecoration: 'none' }}>
-          <div style={{
+          <div className="wc-logo" style={{
             fontFamily:"'Bebas Neue',sans-serif",
             fontSize:20, letterSpacing:3,
             color:'#fff', cursor:'pointer'
@@ -59,7 +119,7 @@ export default function BracketPage() {
       </nav>
 
       {/* Header */}
-      <section style={{ textAlign: 'center', padding: '40px 20px 10px' }}>
+      <section className="bracket-header" style={{ textAlign: 'center', padding: '40px 20px 10px' }}>
         <div style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 'clamp(36px,6vw,56px)', color: '#fff', letterSpacing: 2 }}>
           Knockout <span style={{ color: '#FFD700' }}>Bracket</span>
         </div>
@@ -69,7 +129,9 @@ export default function BracketPage() {
       </section>
 
       {/* Shared Bracket Tree Component */}
-      <BracketTree />
+      <div className="bracket-scroll-wrapper bracket-wrapper">
+        <BracketTree />
+      </div>
 
       {/* Footer */}
       <footer style={{ background: '#050505', borderTop: '1px solid rgba(255,255,255,0.05)', padding: '24px', textAlign: 'center', marginTop: 'auto' }}>

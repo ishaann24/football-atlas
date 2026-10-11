@@ -368,8 +368,100 @@ export default function MatchStatsClient({
       50% { opacity: 0.6; transform: scale(0.96); }
     }
     @media(max-width: 768px) {
-      .stats-layout {
-        grid-template-columns: 1fr;
+      /* Prevent horizontal overflow on any page */
+      body, .wc-page {
+        overflow-x: hidden !important;
+        max-width: 100vw !important;
+      }
+      
+      /* Section padding reduced on mobile */
+      section {
+        padding-left: 16px !important;
+        padding-right: 16px !important;
+      }
+      
+      /* All section max-width containers */
+      .wc-page > section > div[style*="maxWidth"] {
+        padding: 0 !important;
+      }
+      
+      /* Bebas Neue headings scale down */
+      [style*="Bebas Neue"] {
+        letter-spacing: 1px !important;
+      }
+      
+      /* Buttons - minimum tap target 44px */
+      button {
+        min-height: 44px !important;
+      }
+      
+      /* Input fields - prevent iOS zoom */
+      input, select, textarea {
+        font-size: 16px !important;
+      }
+      
+      /* Footer */
+      .wc-footer {
+        padding: 24px 16px !important;
+        gap: 8px !important;
+      }
+      
+      .footer-text {
+        font-size: 11px !important;
+        text-align: center !important;
+      }
+
+      /* Fix 1: Nav Bar */
+      .wc-nav {
+        padding: 10px 12px !important;
+        flex-wrap: wrap !important;
+        gap: 8px !important;
+      }
+      
+      .wc-logo {
+        font-size: 20px !important;
+      }
+      
+      .nav-pills {
+        display: flex !important;
+        flex-wrap: nowrap !important;
+        overflow-x: auto !important;
+        -webkit-overflow-scrolling: touch !important;
+        scrollbar-width: none !important;
+        gap: 6px !important;
+        width: 100% !important;
+        padding-bottom: 4px !important;
+      }
+      
+      .nav-pills::-webkit-scrollbar {
+        display: none !important;
+      }
+      
+      .np {
+        font-size: 10px !important;
+        padding: 6px 10px !important;
+        white-space: nowrap !important;
+        flex-shrink: 0 !important;
+        letter-spacing: 0.5px !important;
+      }
+
+      /* Fix 7: Match Stats Page */
+      .match-hero-score, .score-txt {
+        font-size: clamp(48px, 15vw, 80px) !important;
+      }
+      
+      .match-hero-teams, .team-title {
+        font-size: clamp(14px, 4vw, 20px) !important;
+      }
+      
+      .match-stats-layout, .stats-layout {
+        grid-template-columns: 1fr !important;
+        padding: 16px 12px !important;
+        gap: 16px !important;
+      }
+      
+      .goal-scorers-list {
+        padding: 0 !important;
       }
     }
     .wc-footer{background:#050505;border-top:1px solid rgba(255,255,255,0.05);padding:28px 24px;text-align:center;}
@@ -420,7 +512,7 @@ export default function MatchStatsClient({
                     <span style={{ fontSize: 20, fontWeight: 700 }}>{home.slice(0,3).toUpperCase()}</span>
                   )}
                 </div>
-                <h2 className="team-title">{home}</h2>
+                <h2 className="team-title match-hero-teams">{home}</h2>
               </div>
 
               {/* Center Box */}
@@ -429,9 +521,9 @@ export default function MatchStatsClient({
                   Match #{staticMatch.id} · Group {staticMatch.group}
                 </div>
                 {isStarted && score ? (
-                  <div className="score-txt">{score}</div>
+                  <div className="score-txt match-hero-score">{score}</div>
                 ) : (
-                  <div className="score-txt" style={{ fontSize: 32, color: 'rgba(255,255,255,0.3)', letterSpacing: 4 }}>VS</div>
+                  <div className="score-txt match-hero-score" style={{ fontSize: 32, color: 'rgba(255,255,255,0.3)', letterSpacing: 4 }}>VS</div>
                 )}
 
                 {isLive ? (
@@ -452,7 +544,7 @@ export default function MatchStatsClient({
                     <span style={{ fontSize: 20, fontWeight: 700 }}>{away.slice(0,3).toUpperCase()}</span>
                   )}
                 </div>
-                <h2 className="team-title">{away}</h2>
+                <h2 className="team-title match-hero-teams">{away}</h2>
               </div>
 
             </div>
@@ -473,7 +565,7 @@ export default function MatchStatsClient({
         </section>
 
         {/* Dynamic Match Stats Layout */}
-        <section className="stats-layout">
+        <section className="stats-layout match-stats-layout">
           
           {/* Left Column — Stats & Events */}
           <div>
@@ -615,7 +707,7 @@ export default function MatchStatsClient({
 
             {/* Goal Scorers Section */}
             {isFinished && (
-              <div style={{ marginBottom: 32 }}>
+              <div className="goal-scorers-list" style={{ marginBottom: 32 }}>
                 <h2 style={{
                   fontFamily:"'Bebas Neue',sans-serif",
                   fontSize:28, color:'#fff',

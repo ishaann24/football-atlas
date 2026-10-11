@@ -548,48 +548,141 @@ export default function PredictorPage() {
       }
     }
 
-    @media(max-width:768px) {
+    @media(max-width: 768px) {
+      /* FIX 1: Navigation Bar */
+      .wc-nav {
+        padding: 10px 12px !important;
+        flex-wrap: wrap !important;
+        gap: 8px !important;
+      }
+      
+      .wc-logo {
+        font-size: 20px !important;
+      }
+      
+      .nav-pills {
+        display: flex !important;
+        flex-wrap: nowrap !important;
+        overflow-x: auto !important;
+        -webkit-overflow-scrolling: touch !important;
+        scrollbar-width: none !important;
+        gap: 6px !important;
+        width: 100% !important;
+        padding-bottom: 4px !important;
+      }
+      
+      .nav-pills::-webkit-scrollbar {
+        display: none !important;
+      }
+      
+      .np {
+        font-size: 10px !important;
+        padding: 6px 10px !important;
+        white-space: nowrap !important;
+        flex-shrink: 0 !important;
+        letter-spacing: 0.5px !important;
+      }
+
+      /* FIX 9: GLOBAL MOBILE TYPOGRAPHY + SPACING */
+      body, .wc-page, .predict-page {
+        overflow-x: hidden !important;
+        max-width: 100vw !important;
+      }
+      
+      section {
+        padding-left: 16px !important;
+        padding-right: 16px !important;
+      }
+      
+      [style*="Bebas Neue"] {
+        letter-spacing: 1px !important;
+      }
+      
+      button {
+        min-height: 44px;
+      }
+      
+      input, select, textarea {
+        font-size: 16px !important;
+      }
+      
+      .wc-footer {
+        padding: 24px 16px !important;
+        gap: 8px !important;
+      }
+      
+      .footer-text {
+        font-size: 11px !important;
+        text-align: center !important;
+      }
+
+      /* FIX 4: PREDICT PAGE */
+      /* Main 3-column layout → single column */
       .predict-layout {
         grid-template-columns: 1fr !important;
         padding: 0 12px !important;
+        gap: 16px !important;
       }
+      
+      /* Hide left tagline panel on mobile */
+      .predict-left-panel {
+        display: none !important;
+      }
+      
+      /* Hide right leaderboard panel on mobile */
       .predict-right-panel {
         display: none !important;
       }
+
       .predict-hero {
         min-height: auto !important;
         padding-bottom: 32px !important;
       }
+      
+      /* Match card full width */
       .predict-card {
-        padding: 20px 16px !important;
+        padding: 16px 12px !important;
         border-radius: 12px !important;
       }
+
       .predict-grid {
         gap: 8px !important;
       }
-      .predict-flag {
-        width: 52px !important;
-        height: 52px !important;
-      }
-      .predict-team-name {
-        font-size: 13px !important;
-      }
-      .score-btn {
-        width: 44px !important;
-        height: 32px !important;
-        font-size: 16px !important;
-      }
+      
+      /* Score display smaller */
       .score-display {
         font-size: 48px !important;
         min-width: 56px !important;
         padding: 6px 12px !important;
       }
+      
+      /* Score buttons bigger tap target */
+      .score-btn {
+        width: 44px !important;
+        height: 32px !important;
+        min-height: 32px !important;
+        font-size: 16px !important;
+      }
+      
+      /* Team flags smaller */
+      .predict-team-flag, .predict-flag {
+        width: 52px !important;
+        height: 52px !important;
+      }
+
+      .predict-team-name {
+        font-size: 13px !important;
+      }
+      
+      /* Popular predictions - show 3 not 5 */
       .popular-preds-grid {
         grid-template-columns: repeat(3, 1fr) !important;
       }
+      
       .popular-preds-grid > div:nth-child(n+4) {
         display: none !important;
       }
+
       .nav-dots-container {
         gap: 8px !important;
       }
@@ -608,22 +701,26 @@ export default function PredictorPage() {
         display: block !important;
         margin-top: 16px;
       }
+      
+      /* Auth modal - bottom sheet */
       .auth-modal {
-        width: 100% !important;
-        max-width: 100% !important;
-        margin: 0 !important;
-        border-radius: 16px 16px 0 0 !important;
         position: fixed !important;
         bottom: 0 !important;
         left: 0 !important;
         right: 0 !important;
+        top: auto !important;
+        border-radius: 16px 16px 0 0 !important;
+        max-width: 100% !important;
         max-height: 90vh !important;
         overflow-y: auto !important;
+        margin: 0 !important;
       }
+      
       .auth-modal-overlay {
         align-items: flex-end !important;
         padding: 0 !important;
       }
+
       .all-preds-section {
         padding: 60px 16px !important;
       }
@@ -634,21 +731,6 @@ export default function PredictorPage() {
       }
     }
 
-    @media(max-width:640px) {
-      .mobile-home-btn {
-        display: inline-flex !important;
-      }
-      .nav-pills {
-        overflow-x: auto;
-        -webkit-overflow-scrolling: touch;
-        scrollbar-width: none;
-        padding-bottom: 2px;
-      }
-      .nav-pills::-webkit-scrollbar {
-        display: none;
-      }
-    }
-   
   `;
 
   return (
@@ -659,7 +741,7 @@ export default function PredictorPage() {
       {/* Nav */}
       <nav className="wc-nav">
         <a href="/" style={{textDecoration:'none'}}>
-          <div style={{
+          <div className="wc-logo" style={{
             fontFamily:"'Bebas Neue',sans-serif",
             fontSize:20, letterSpacing:3,
             color:'#fff', cursor:'pointer'
@@ -1141,7 +1223,7 @@ function MatchPredictCard({ user, onLoginRequired }: MatchPredictCardProps) {
         <div className="predict-grid">
           {/* Home team */}
           <div style={{textAlign:'center'}}>
-            <div className="predict-flag">
+            <div className="predict-flag predict-team-flag">
               <img
                 src={`https://flagcdn.com/64x48/${
                   TEAM_CODES[match.homeTeam]||'un'
@@ -1209,7 +1291,7 @@ function MatchPredictCard({ user, onLoginRequired }: MatchPredictCardProps) {
 
           {/* Away team */}
           <div style={{textAlign:'center'}}>
-            <div className="predict-flag">
+            <div className="predict-flag predict-team-flag">
               <img
                 src={`https://flagcdn.com/64x48/${
                   TEAM_CODES[match.awayTeam]||'un'

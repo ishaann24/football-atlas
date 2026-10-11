@@ -167,7 +167,7 @@ function getDaysDisplay() {
 function TodaysMatches() {
   return (
     <section id="matches-section" style={{background:'#080808',padding:'40px 24px'}}>
-      <div style={{maxWidth:'1100px',margin:'0 auto'}}>
+      <div className="todays-matches-grid" style={{maxWidth:'1100px',margin:'0 auto'}}>
         <div style={{
           background:'rgba(255,255,255,0.03)',
           border:'1px solid rgba(255,255,255,0.07)',
@@ -240,10 +240,10 @@ function GroupStandings() {
         </FadeSection>
 
         {/* Group tabs */}
-        <div style={{display:'flex',gap:6,
+        <div className="group-tabs" style={{display:'flex',gap:6,
           flexWrap:'wrap',marginBottom:16}}>
           {groups.map((g) => (
-            <button key={g} onClick={() => setActiveGroup(g)}
+            <button key={g} className="group-tab" onClick={() => setActiveGroup(g)}
               style={{
                 background: activeGroup===g 
                   ? '#3CAC3B' : 'rgba(255,255,255,0.05)',
@@ -286,7 +286,7 @@ function GroupStandings() {
           </div>
 
           {table.map((row, i) => (
-            <div key={row.team} style={{display:'grid',
+            <div key={row.team} className="standings-row" style={{display:'grid',
               gridTemplateColumns:'28px 1fr 32px 32px 32px 32px 36px 44px',
               padding:'12px 16px',gap:4,
               borderBottom:i<table.length-1
@@ -490,29 +490,199 @@ export default function Home() {
         grid-template-columns: repeat(2, 1fr);
       }
     }
-    @media(max-width:640px){
-      .stats-bar{grid-template-columns:repeat(2,1fr);}
+
+    @media(max-width: 768px) {
+      /* FIX 1: Navigation Bar */
+      .wc-nav {
+        padding: 10px 12px !important;
+        flex-wrap: wrap !important;
+        gap: 8px !important;
+      }
+      
+      .wc-logo {
+        font-size: 20px !important;
+      }
+      
+      .nav-pills {
+        display: flex !important;
+        flex-wrap: nowrap !important;
+        overflow-x: auto !important;
+        -webkit-overflow-scrolling: touch !important;
+        scrollbar-width: none !important;
+        gap: 6px !important;
+        width: 100% !important;
+        padding-bottom: 4px !important;
+      }
+      
+      .nav-pills::-webkit-scrollbar {
+        display: none !important;
+      }
+      
+      .np {
+        font-size: 10px !important;
+        padding: 6px 10px !important;
+        white-space: nowrap !important;
+        flex-shrink: 0 !important;
+        letter-spacing: 0.5px !important;
+      }
+
+      /* FIX 9: GLOBAL MOBILE TYPOGRAPHY + SPACING */
+      body, .wc-page {
+        overflow-x: hidden !important;
+        max-width: 100vw !important;
+      }
+      
+      section {
+        padding-left: 16px !important;
+        padding-right: 16px !important;
+      }
+      
+      .wc-page > section > div[style*="maxWidth"],
+      .wc-page > section > div[style*="max-width"] {
+        padding-left: 0 !important;
+        padding-right: 0 !important;
+      }
+      
+      [style*="Bebas Neue"] {
+        letter-spacing: 1px !important;
+      }
+      
+      button {
+        min-height: 44px;
+      }
+      
+      input, select, textarea {
+        font-size: 16px !important;
+      }
+      
+      .wc-footer {
+        padding: 24px 16px !important;
+        gap: 8px !important;
+      }
+      
+      .footer-text {
+        font-size: 11px !important;
+        text-align: center !important;
+      }
+
+      /* FIX 2: HOMEPAGE */
+      /* Hero section */
+      .wc-hero {
+        min-height: 100svh !important;
+        padding: 60px 16px 40px !important;
+      }
+      
+      .hero-tag, .hero-eyebrow {
+        font-size: 9px !important;
+        letter-spacing: 2px !important;
+        padding: 4px 12px !important;
+      }
+      
+      .hero-title {
+        font-size: clamp(52px, 18vw, 80px) !important;
+        letter-spacing: 2px !important;
+      }
+      
+      .hero-subtitle, .hero-dates {
+        font-size: 12px !important;
+      }
+
+      .hero-ctas {
+        flex-direction: column !important;
+        gap: 10px !important;
+        width: 100% !important;
+      }
+      
+      .hero-ctas button,
+      .hero-ctas a {
+        width: 100% !important;
+        text-align: center !important;
+      }
+
+      /* Stats bar */
+      .stats-bar {
+        gap: 8px !important;
+        padding: 16px 12px !important;
+        flex-wrap: wrap !important;
+        justify-content: center !important;
+        display: flex !important;
+      }
+      
+      .stat-item, .sb {
+        min-width: 70px !important;
+        flex: 1 1 70px !important;
+      }
+      
+      .stat-n, .sb-n {
+        font-size: 28px !important;
+      }
+      
+      .stat-l, .sb-l {
+        font-size: 8px !important;
+      }
+
+      /* Feature discovery pills */
+      .feature-pills-row {
+        justify-content: flex-start !important;
+      }
+
+      /* Today's matches */
+      .todays-matches-grid {
+        grid-template-columns: 1fr !important;
+        gap: 10px !important;
+      }
+
+      /* Fan Poll */
+      .fan-poll-inner {
+        grid-template-columns: 1fr !important;
+        gap: 20px !important;
+      }
+
+      /* Group Standings */
+      .group-tabs {
+        gap: 4px !important;
+        flex-wrap: wrap !important;
+      }
+      
+      .group-tab {
+        width: 36px !important;
+        height: 36px !important;
+        min-height: 36px !important;
+        padding: 0 !important;
+        font-size: 12px !important;
+      }
+      
+      .standings-row {
+        font-size: 11px !important;
+        padding: 8px 10px !important;
+      }
+
+      /* Features grid */
       .features-grid {
         grid-template-columns: repeat(2, 1fr) !important;
         gap: 8px !important;
       }
-      .feature-card {
+      
+      .feat-card, .feature-card {
         padding: 14px 12px !important;
       }
-      .feature-icon-wrapper {
+      
+      .feat-card-icon, .feature-icon-wrapper {
         font-size: 22px !important;
-        margin-bottom: 8px !important;
       }
-      .feature-card-title {
-        font-size: 14px !important;
+      
+      .feat-card-title, .feature-card-title {
+        font-size: 13px !important;
       }
-      .feature-card-desc {
+      
+      .feat-card-desc, .feature-card-desc {
         font-size: 10px !important;
         line-height: 1.4 !important;
       }
-      .feature-card-tag {
-        font-size: 7px !important;
-        padding: 2px 6px !important;
+
+      /* News strip */
+      .news-grid {
+        grid-template-columns: 1fr !important;
       }
     }
    
@@ -536,7 +706,7 @@ export default function Home() {
         {/* Nav */}
         <nav className="wc-nav">
           <a href="/" style={{textDecoration:'none'}}>
-            <div style={{
+            <div className="wc-logo" style={{
               fontFamily:"'Bebas Neue',sans-serif",
               fontSize:20, letterSpacing:3,
               color:'#fff', cursor:'pointer'
@@ -586,9 +756,9 @@ export default function Home() {
           }} />
           <div className="hero-overlay" />
           <div className="hero-content">
-            <div className="hero-eyebrow">The World&apos;s Greatest Stage 2026</div>
+            <div className="hero-eyebrow hero-tag">The World&apos;s Greatest Stage 2026</div>
             <div className="hero-title">FIFA<br /><span className="tc">WORLD</span><br />CUP <span className="rc">2026</span></div>
-            <div className="hero-dates">Spain 🏆 World Champions 2026</div>
+            <div className="hero-dates hero-subtitle">Spain 🏆 World Champions 2026</div>
             <Countdown />
             
             <div style={{
@@ -639,9 +809,9 @@ export default function Home() {
             { n: '16', l: 'Host Cities', bg: 'var(--r)' },
             { n: '39', l: 'Days of Football', bg: 'var(--gr)' }
           ].map(({ n, l, bg }) => (
-            <div key={l} className="sb" style={{ background: bg }}>
-              <div className="sb-n">{n}</div>
-              <div className="sb-l">{l}</div>
+            <div key={l} className="sb stat-item" style={{ background: bg }}>
+              <div className="sb-n stat-n">{n}</div>
+              <div className="sb-l stat-l">{l}</div>
             </div>
           ))}
         </div>
@@ -759,16 +929,16 @@ export default function Home() {
             ].map((card: any, i) => (
               <FadeSection key={card.title} delay={i * 80}>
                 <div 
-                  className="feature-card"
+                  className="feature-card feat-card"
                   onClick={card.title === 'Goal Alerts' ? handleWhatsAppComingSoon : (card.href ? () => window.location.href = card.href : undefined)}
                   style={{ cursor: (card.title === 'Goal Alerts' || card.href) ? 'pointer' : 'default', borderColor: card.borderColor }}
                 >
-                  <span className="feature-card-tag" style={{ background: card.tagBg, color: card.tagColor || '#fff' }}>{card.tag}</span>
-                  <div className="feature-icon-wrapper" style={{ background: `${card.tagBg}15`, color: card.tagColor || card.tagBg }}>
+                  <span className="feature-card-tag feat-card-tag" style={{ background: card.tagBg, color: card.tagColor || '#fff' }}>{card.tag}</span>
+                  <div className="feature-icon-wrapper feat-card-icon" style={{ background: `${card.tagBg}15`, color: card.tagColor || card.tagBg }}>
                     {card.icon}
                   </div>
-                  <h3 className="feature-card-title">{card.title}</h3>
-                  <p className="feature-card-desc">{card.desc}</p>
+                  <h3 className="feature-card-title feat-card-title">{card.title}</h3>
+                  <p className="feature-card-desc feat-card-desc">{card.desc}</p>
                 </div>
               </FadeSection>
             ))}

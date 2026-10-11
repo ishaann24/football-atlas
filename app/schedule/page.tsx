@@ -209,19 +209,150 @@ export default function SchedulePage() {
       display: none;
     }
 
-    @media(max-width:640px){
-      .match-grid{grid-template-columns:1fr;}
-      .mobile-home-btn {
-        display: inline-flex !important;
+    @media(max-width: 768px) {
+      /* FIX 1: Navigation Bar */
+      .wc-nav {
+        padding: 10px 12px !important;
+        flex-wrap: wrap !important;
+        gap: 8px !important;
       }
+      
+      .wc-logo {
+        font-size: 20px !important;
+      }
+      
       .nav-pills {
-        overflow-x: auto;
-        -webkit-overflow-scrolling: touch;
-        scrollbar-width: none;
-        padding-bottom: 2px;
+        display: flex !important;
+        flex-wrap: nowrap !important;
+        overflow-x: auto !important;
+        -webkit-overflow-scrolling: touch !important;
+        scrollbar-width: none !important;
+        gap: 6px !important;
+        width: 100% !important;
+        padding-bottom: 4px !important;
       }
+      
       .nav-pills::-webkit-scrollbar {
-        display: none;
+        display: none !important;
+      }
+      
+      .np {
+        font-size: 10px !important;
+        padding: 6px 10px !important;
+        white-space: nowrap !important;
+        flex-shrink: 0 !important;
+        letter-spacing: 0.5px !important;
+      }
+
+      /* FIX 9: GLOBAL MOBILE TYPOGRAPHY + SPACING */
+      body, .wc-page {
+        overflow-x: hidden !important;
+        max-width: 100vw !important;
+      }
+      
+      section {
+        padding-left: 16px !important;
+        padding-right: 16px !important;
+      }
+      
+      .wc-page > section > div[style*="maxWidth"],
+      .wc-page > section > div[style*="max-width"] {
+        padding-left: 0 !important;
+        padding-right: 0 !important;
+      }
+      
+      [style*="Bebas Neue"] {
+        letter-spacing: 1px !important;
+      }
+      
+      button {
+        min-height: 44px;
+      }
+      
+      input, select, textarea {
+        font-size: 16px !important;
+      }
+      
+      .wc-footer {
+        padding: 24px 16px !important;
+        gap: 8px !important;
+      }
+      
+      .footer-text {
+        font-size: 11px !important;
+        text-align: center !important;
+      }
+
+      /* FIX 3: SCHEDULE PAGE */
+      /* Filter bar */
+      .schedule-filters, .filters-row {
+        flex-direction: column !important;
+        gap: 8px !important;
+        padding: 12px !important;
+        align-items: stretch !important;
+      }
+      
+      .schedule-filter-btns {
+        width: 100% !important;
+        justify-content: flex-start !important;
+        overflow-x: auto !important;
+        flex-wrap: nowrap !important;
+        -webkit-overflow-scrolling: touch !important;
+        scrollbar-width: none !important;
+        padding-bottom: 4px !important;
+      }
+      
+      .schedule-filter-btns::-webkit-scrollbar {
+        display: none !important;
+      }
+      
+      .schedule-filter-btn, .f-btn {
+        white-space: nowrap !important;
+        flex-shrink: 0 !important;
+        font-size: 11px !important;
+        padding: 6px 12px !important;
+        min-height: 36px !important;
+      }
+      
+      .schedule-search {
+        width: 100% !important;
+      }
+      
+      .schedule-search input, .f-search {
+        width: 100% !important;
+        font-size: 14px !important;
+      }
+
+      /* Timezone selector */
+      .timezone-selector, .tz-row {
+        width: 100% !important;
+      }
+
+      /* Match cards grid */
+      .matches-grid, .match-grid {
+        grid-template-columns: 1fr !important;
+        padding: 0 12px !important;
+        gap: 10px !important;
+      }
+
+      /* Individual match card */
+      .match-card {
+        padding: 14px 12px !important;
+      }
+      
+      .match-teams {
+        font-size: 13px !important;
+      }
+      
+      .match-score {
+        font-size: 22px !important;
+      }
+
+      /* Bracket tab - horizontal scroll */  
+      .bracket-wrapper {
+        overflow-x: auto !important;
+        -webkit-overflow-scrolling: touch !important;
+        padding-bottom: 20px !important;
       }
     }
     
@@ -237,7 +368,7 @@ export default function SchedulePage() {
         {/* Nav */}
         <nav className="wc-nav">
           <a href="/" style={{textDecoration:'none'}}>
-            <div style={{
+            <div className="wc-logo" style={{
               fontFamily:"'Bebas Neue',sans-serif",
               fontSize:20, letterSpacing:3,
               color:'#fff', cursor:'pointer'
@@ -379,28 +510,32 @@ export default function SchedulePage() {
         {view === 'fixtures' ? (
           <>
             {/* Timezone Selector Row */}
-            <div className="tz-row" style={{maxWidth:'1100px', margin:'0 auto 16px', display:'flex', alignItems:'center', justifyContent:'space-between', background:'rgba(42,57,141,0.12)', border:'1px solid rgba(42,57,141,0.3)', borderRadius:'8px', padding:'12px 16px', flexWrap:'wrap', gap:'10px'}}>
+            <div className="tz-row timezone-selector" style={{maxWidth:'1100px', margin:'0 auto 16px', display:'flex', alignItems:'center', justifyContent:'space-between', background:'rgba(42,57,141,0.12)', border:'1px solid rgba(42,57,141,0.3)', borderRadius:'8px', padding:'12px 16px', flexWrap:'wrap', gap:'10px'}}>
               <span className="tz-left">⏰ &nbsp;Showing times in</span>
               <TimezoneSelector selectedTimezone={selectedTimezone} onTimezoneChange={setSelectedTimezone} />
             </div>
 
             {/* Filters Row */}
-            <div className="filters-row" style={{maxWidth:'1100px', margin:'0 auto 16px', display:'flex', gap:'8px', flexWrap:'wrap', alignItems:'center', padding:'0 16px'}}>
-              {['All', 'Group Stage', 'Knockouts'].map((s) => (
-                <button key={s} className={`f-btn${selectedStage === s ? ' active' : ''}`} onClick={() => setSelectedStage(s)}>{s}</button>
-              ))}
+            <div className="filters-row schedule-filters" style={{maxWidth:'1100px', margin:'0 auto 16px', display:'flex', gap:'8px', flexWrap:'wrap', alignItems:'center', padding:'0 16px'}}>
+              <div className="schedule-filter-btns" style={{display:'flex', gap:'8px'}}>
+                {['All', 'Group Stage', 'Knockouts'].map((s) => (
+                  <button key={s} className={`f-btn schedule-filter-btn${selectedStage === s ? ' active' : ''}`} onClick={() => setSelectedStage(s)}>{s}</button>
+                ))}
+              </div>
               <select className="team-select" value={selectedTeam} onChange={(e) => setSelectedTeam(e.target.value)}>
                 <option value="All">All Teams</option>
                 {uniqueTeams.map((t) => <option key={t} value={t}>{t}</option>)}
               </select>
-              <input className="f-search" placeholder="Search team or venue..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
+              <div className="schedule-search" style={{flex: 1}}>
+                <input className="f-search" placeholder="Search team or venue..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
+              </div>
             </div>
 
             {/* Match list */}
             <div className="match-list" style={{padding:'0 16px 80px'}}>
               {filteredMatches.length === 0
                 ? <div className="no-matches">No matches found. Try adjusting your filters.</div>
-                : <div className="match-grid">
+                : <div className="match-grid matches-grid">
                     {filteredMatches.map((match) => (
                       <MatchCard key={match.id} match={match} timezone={selectedTimezone} />
                     ))}
@@ -410,7 +545,9 @@ export default function SchedulePage() {
           </>
         ) : (
           /* Bracket View */
-          <BracketTree />
+          <div className="bracket-wrapper">
+            <BracketTree />
+          </div>
         )}
 
         {/* Footer */}

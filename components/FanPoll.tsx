@@ -109,7 +109,7 @@ export default function FanPoll() {
 
   return (
     <>
-      <div style={{
+      <div className="fan-poll-inner" style={{
         background: 'rgba(255,255,255,0.03)',
         border: '1px solid rgba(255,255,255,0.08)',
         borderRadius: 12,

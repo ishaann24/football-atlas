@@ -114,7 +114,7 @@ function TopScorers() {
         </FadeSection>
 
         {/* Players Grid */}
-        <div style={{display:'grid',
+        <div className="scorers-grid" style={{display:'grid',
           gridTemplateColumns:'repeat(auto-fill,minmax(260px,1fr))',
           gap:10}}>
           {FINAL_SCORERS.map((p, i) => {
@@ -265,22 +265,6 @@ export default function AboutPage() {
       display: none;
     }
 
-    @media(max-width:640px){
-      .stats-bar{grid-template-columns:repeat(2,1fr);}
-      .facts-grid{grid-template-columns:repeat(2,1fr);}
-      .mobile-home-btn {
-        display: inline-flex !important;
-      }
-      .nav-pills {
-        overflow-x: auto;
-        -webkit-overflow-scrolling: touch;
-        scrollbar-width: none;
-        padding-bottom: 2px;
-      }
-      .nav-pills::-webkit-scrollbar {
-        display: none;
-      }
-    }
     .trophy-detailed-section {
       margin-top: 48px;
       background: rgba(255,215,0,0.03);
@@ -292,15 +276,116 @@ export default function AboutPage() {
       gap: 40px;
       align-items: center;
     }
-    @media(max-width:640px) {
+
+    @media(max-width: 768px) {
+      /* Prevent horizontal overflow on any page */
+      body, .wc-page {
+        overflow-x: hidden !important;
+        max-width: 100vw !important;
+      }
+      
+      /* Section padding reduced on mobile */
+      section {
+        padding-left: 16px !important;
+        padding-right: 16px !important;
+      }
+      
+      /* All section max-width containers */
+      .wc-page > section > div[style*="maxWidth"],
+      .s-inner {
+        padding: 0 !important;
+      }
+      
+      /* Bebas Neue headings scale down */
+      [style*="Bebas Neue"] {
+        letter-spacing: 1px !important;
+      }
+      
+      /* Buttons - minimum tap target 44px */
+      button {
+        min-height: 44px !important;
+      }
+      
+      /* Input fields - prevent iOS zoom */
+      input, select, textarea {
+        font-size: 16px !important;
+      }
+      
+      /* Footer */
+      .wc-footer {
+        padding: 24px 16px !important;
+        gap: 8px !important;
+      }
+      
+      .footer-text {
+        font-size: 11px !important;
+        text-align: center !important;
+      }
+
+      /* Fix 1: Nav Bar */
+      .wc-nav {
+        padding: 10px 12px !important;
+        flex-wrap: wrap !important;
+        gap: 8px !important;
+      }
+      
+      .wc-logo {
+        font-size: 20px !important;
+      }
+      
+      .nav-pills {
+        display: flex !important;
+        flex-wrap: nowrap !important;
+        overflow-x: auto !important;
+        -webkit-overflow-scrolling: touch !important;
+        scrollbar-width: none !important;
+        gap: 6px !important;
+        width: 100% !important;
+        padding-bottom: 4px !important;
+      }
+      
+      .nav-pills::-webkit-scrollbar {
+        display: none !important;
+      }
+      
+      .np {
+        font-size: 10px !important;
+        padding: 6px 10px !important;
+        white-space: nowrap !important;
+        flex-shrink: 0 !important;
+        letter-spacing: 0.5px !important;
+      }
+
+      /* Fix 6: About Page */
+      .records-grid {
+        grid-template-columns: 1fr !important;
+        gap: 10px !important;
+        padding: 0 12px !important;
+      }
+
+      .scorers-grid {
+        grid-template-columns: 1fr !important;
+        gap: 10px !important;
+        padding: 0 12px !important;
+      }
+      
+      .facts-grid, .dyk-grid {
+        grid-template-columns: 1fr !important;
+        gap: 10px !important;
+      }
+      
+      .section-title, .s-title {
+        font-size: clamp(32px, 8vw, 48px) !important;
+      }
+
       .trophy-detailed-section {
-        grid-template-columns: 1fr;
-        padding: 32px 20px;
-        gap: 24px;
-        text-align: center;
+        grid-template-columns: 1fr !important;
+        padding: 32px 20px !important;
+        gap: 24px !important;
+        text-align: center !important;
       }
       .trophy-detailed-section img {
-        margin: 0 auto;
+        margin: 0 auto !important;
       }
     }
     @keyframes heartbeat {
@@ -326,7 +411,7 @@ export default function AboutPage() {
         {/* Nav */}
         <nav className="wc-nav">
           <a href="/" style={{textDecoration:'none'}}>
-            <div style={{
+            <div className="wc-logo" style={{
               fontFamily:"'Bebas Neue',sans-serif",
               fontSize:20, letterSpacing:3,
               color:'#fff', cursor:'pointer'
@@ -418,7 +503,7 @@ export default function AboutPage() {
             </FadeSection>
 
             {/* Record cards grid */}
-            <div style={{display:'grid',
+            <div className="records-grid" style={{display:'grid',
               gridTemplateColumns:
                 'repeat(auto-fill,minmax(260px,1fr))',
               gap:10}}>

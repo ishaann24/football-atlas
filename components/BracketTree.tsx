@@ -217,12 +217,31 @@ export default function BracketTree() {
     .col-qf  { justify-content: space-around; }
     .col-sf  { justify-content: center; }
     .col-final { justify-content: center; align-items: center; }
+
+    @media(max-width: 768px) {
+      .bracket-scroll-wrapper, .bracket-wrapper, .bracket-container {
+        overflow-x: auto !important;
+        -webkit-overflow-scrolling: touch !important;
+        padding: 0 16px 24px !important;
+        cursor: grab !important;
+      }
+      .bracket-scroll-wrapper::before, .bracket-wrapper::before, .bracket-container::before {
+        content: '← Swipe to see full bracket →' !important;
+        display: block !important;
+        text-align: center !important;
+        font-size: 11px !important;
+        color: rgba(255,255,255,0.3) !important;
+        letter-spacing: 1px !important;
+        margin-bottom: 16px !important;
+        padding-top: 8px !important;
+      }
+    }
   `;
 
   return (
     <>
       <style dangerouslySetInnerHTML={{ __html: css }} />
-      <div className="bracket-container">
+      <div className="bracket-container bracket-scroll-wrapper bracket-wrapper">
         <div className="bracket-tree">
           {/* LEFT SIDE: R32 -> R16 -> QF -> SF */}
           

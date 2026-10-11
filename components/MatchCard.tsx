@@ -200,7 +200,7 @@ Get live score alerts & chatbot support here: https://world-cup-fan-site.vercel.
 
   return (
     <div
-      className="relative overflow-hidden rounded-3xl border border-slate-800/80 bg-gradient-to-b from-slate-900/60 to-slate-950/80 backdrop-blur-xl p-6 shadow-2xl hover:border-fifa-green hover:-translate-y-1.5 transition-all duration-300 group"
+      className="match-card relative overflow-hidden rounded-3xl border border-slate-800/80 bg-gradient-to-b from-slate-900/60 to-slate-950/80 backdrop-blur-xl p-6 shadow-2xl hover:border-fifa-green hover:-translate-y-1.5 transition-all duration-300 group"
     >
       {/* Stadium spotlight glow backdrop */}
       <div className="absolute -right-24 -top-24 w-48 h-48 bg-gradient-to-br from-fifa-green/10 to-transparent rounded-full blur-[60px] pointer-events-none group-hover:scale-125 transition-transform duration-500" />
@@ -268,14 +268,14 @@ Get live score alerts & chatbot support here: https://world-cup-fan-site.vercel.
               </span>
             )}
           </div>
-          <h3 className="text-sm font-bold text-slate-200 line-clamp-1">{match.homeTeam || 'TBD'}</h3>
+          <h3 className="match-teams text-sm font-bold text-slate-200 line-clamp-1">{match.homeTeam || 'TBD'}</h3>
         </div>
 
         {/* Versus Match score */}
         <div className="flex flex-col items-center px-4">
           {isFinished && hasScore ? (
             <div style={{textAlign:'center'}}>
-              <div style={{
+              <div className="match-score" style={{
                 fontFamily:"'Bebas Neue',sans-serif",
                 fontSize:28, color:'#fff', letterSpacing:4
               }}>
@@ -291,7 +291,7 @@ Get live score alerts & chatbot support here: https://world-cup-fan-site.vercel.
             </div>
           ) : isLive && hasScore ? (
             <div style={{textAlign:'center'}}>
-              <div style={{
+              <div className="match-score" style={{
                 fontFamily:"'Bebas Neue',sans-serif",
                 fontSize:28, color:'#E61D25', letterSpacing:4
               }}>
@@ -362,7 +362,7 @@ Get live score alerts & chatbot support here: https://world-cup-fan-site.vercel.
               </span>
             )}
           </div>
-          <h3 className="text-sm font-bold text-slate-200 line-clamp-1">{match.awayTeam || 'TBD'}</h3>
+          <h3 className="match-teams text-sm font-bold text-slate-200 line-clamp-1">{match.awayTeam || 'TBD'}</h3>
         </div>
       </div>
 

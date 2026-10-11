@@ -182,7 +182,7 @@ export default function NewsStrip() {
 
         {/* 3 News cards */}
         {!loading && articles.length > 0 && (
-          <div style={{
+          <div className="news-grid" style={{
             display: 'grid',
             gridTemplateColumns: 
               'repeat(auto-fill,minmax(300px,1fr))',

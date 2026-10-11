@@ -132,7 +132,7 @@ export default function RegisterForm() {
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className="space-y-4 md:space-y-5">
+      <form onSubmit={handleSubmit} className="register-form space-y-4 md:space-y-5">
         {/* Name */}
         <div>
           <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-1.5">
